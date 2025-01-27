@@ -4,7 +4,6 @@ const serviceAccount = require('../../firebaseConnect/firebase.json'); // Rempla
 // Initialisation de Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://dreamteamrecordebsite-default-rtdb.firebaseio.com/"
 });
 
 // Exportation de `admin` et `db` (Firestore)
