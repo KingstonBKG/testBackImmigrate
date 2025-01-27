@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const { db, admin } = require('../config/firebase');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const { json } = require('body-parser');
 
 // Méthode pour vérifier l'API Key
 const verifyApiKey = async (req, res, next) => {
@@ -13,12 +14,7 @@ const verifyApiKey = async (req, res, next) => {
   }
 
   try {
-    const snapshot1 = await db.collection('apiKeys').get();
-    console.log('Collections disponibles dans Firestore:');
-    snapshot1.forEach(doc => {
-      console.log('Document ID:', doc.id, 'Data:', doc.data());
-    });
-
+   
     const snapshot = await db
       .collection('apiKeys')
       .where('appName', '==', appName)
@@ -34,7 +30,6 @@ const verifyApiKey = async (req, res, next) => {
 
     const isValid = await bcrypt.compare(apiKey, firebaseApiKey);
     if (!isValid) {
-      console.error('Clé API invalide');
       return res.status(401).json({ message: 'Invalid API Key' });
     }
 
@@ -113,8 +108,108 @@ const getJob = async (req, res) => {
   }
 };
 
+// Méthode pour récupérer les jobs
+const getJobdetails = async (req, res) => {
+  const searchstring = req.query.details || '';
+  
+  // Vous pouvez récupérer l'ID de l'offre à partir des données renvoyées par l'API (exemple: 43126771)
+  const jobId = req.query.jobId || '';  // Récupérer l'ID de l'offre d'emploi depuis les paramètres de la requête
+
+  // Vérification que l'ID de l'offre est bien présent
+  if (!jobId) {
+    return res.status(400).json({ error: 'ID de l\'offre d\'emploi manquant' });
+  }
+
+  // Construction de l'URL dynamique en fonction de l'ID de l'offre d'emploi
+  const url = `https://www.guichetemplois.gc.ca/rechercheemplois/offredemploi/${jobId}?source=searchresults`;
+
+  // Fonction pour nettoyer les données extraites
+  const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
+
+
+  // Fonction pour scraper les offres d'emploi
+  try {
+    // Récupérer le contenu HTML de la page
+    const { data } = await axios.get(url);
+    const $ = cheerio.load(data);
+    var responsabilite, expetspec, renseignementsup, jobaudience;
+
+    // Tableau pour stocker les offres d'emploi
+    // Extraire les informations nécessaires
+    const jobTitle = cleanText($('h1.title span[property="title"]').text().trim());
+    const jobAppellation = cleanText($('p.source-title .source-title-inner').text().trim());
+    const datePosted = cleanText($('p.date-business .date').text().trim().replace('Publiée le', '').trim());
+    const employer = cleanText($('span[property="hiringOrganization"] strong').text().trim());
+    const jobLocation = cleanText($('ul.job-posting-brief li span[property="joblocation"] .city').text().trim());
+    const employmentType = cleanText($('ul.job-posting-brief li span[property="employmentType"]').text().trim());
+    const jobSource = cleanText($('ul.job-posting-brief li span.source-title').text().trim());
+    const jobUrl = $('a#externalJobLink').attr('href');
+    const langue = cleanText($('p[property="qualification"]').text().trim());
+    const experience = cleanText($('p[property="experienceRequirements qualification"] span').text().trim());
+    const diplome = cleanText($('ul[property="educationRequirements qualification"] li span').text().trim());
+    const description = cleanText($('span.description').text().trim());
+    const important = cleanText($('div.job-posting-detail-common div p.small').text().trim());
+    const salary = $('ul.job-posting-brief li:nth-child(3)').text().trim();
+    const type = cleanText($('ul.job-posting-brief li:nth-child(4)').text().trim());
+    const startDate = $('ul.job-posting-brief li:nth-child(5)').text().trim();
+
+
+  
+      $('div[property="responsibilities"] ul.csvlist').each((index, element) => {
+        responsabilite = cleanText($(element).find('li').text());
+
+      });
+      $('div[property="experienceRequirements"] ul.csvlist').each((index, element) => {
+        expetspec = cleanText($(element).find('li').text());
+      });
+      $('div[property="skills"] ul.csvlist').each((index, element) => {
+        renseignementsup = cleanText($(element).find('li').text());
+      });
+      $('div.job-audience ul').each((index, element) => {
+        jobaudience = cleanText($(element).find('li').text());
+      });
+  
+ 
+
+    // Créer un objet avec les informations extraites
+    const jobDetails = {
+      jobTitle,
+      langue,
+      diplome,
+      experience,
+      description,
+      responsabilite,
+      salary,
+      expetspec,
+      renseignementsup,
+      jobAppellation,
+      datePosted,
+      employer,
+      jobLocation,
+      employmentType,
+      startDate,
+      type,
+      jobSource,
+      jobUrl,
+      jobaudience,
+      important
+    };
+
+
+    res.json(jobDetails);
+    
+
+    // Retourner les résultats au format JSON
+  } catch (error) {
+    console.error('Erreur lors du scraping ou de l\'enregistrement :', error.message);
+    res.status(500).json({ error: 'Erreur interne du serveur' });
+  }
+};
+
+
 
 module.exports = {
   verifyApiKey,
   getJob,
+  getJobdetails
 };
