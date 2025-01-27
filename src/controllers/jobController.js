@@ -50,8 +50,13 @@ const verifyApiKey = async (req, res, next) => {
 
 // Méthode pour récupérer les jobs
 const getJob = async (req, res) => {
+
+  const searchstring = req.query.searchstring || '';  // Par défaut 'avocat' si non fourni
+  const locationstring = req.query.locationstring || '';
+
   // URL de la page à scraper
-  const url = 'https://www.guichetemplois.gc.ca/jobsearch/rechercheemplois?searchstring=avocat&locationstring=&locationparam=';
+  const url = `https://www.guichetemplois.gc.ca/jobsearch/rechercheemplois?searchstring=${encodeURIComponent(searchstring)}&locationstring=${encodeURIComponent(locationstring)}&locationparam=`;
+
 
   // Fonction pour nettoyer les données extraites
   const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
