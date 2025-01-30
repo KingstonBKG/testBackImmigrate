@@ -7,6 +7,7 @@ const getLogement = async (req, res) => {
     var type = req.params.type;
     var city = req.params.city;
     var bed = req.params.bed;
+    var price = req.params.price;
     var pet = req.params.pet;
 
     const propertyCategories = req.query["property-categories"];
@@ -18,7 +19,7 @@ const getLogement = async (req, res) => {
     }
 
     const baseUrl = "https://www.padmapper.com";
-    const pathParts = [type, city, bed, pet].filter(Boolean); // Supprime les undefined
+    const pathParts = [type, city, bed, price, pet].filter(Boolean); // Supprime les undefined
     const url = `${baseUrl}/${pathParts.join('/')}?property-categories=${propertyCategories}&lease-terms=${leaseTerms}`;
     
     // Fonction pour nettoyer les données extraites
