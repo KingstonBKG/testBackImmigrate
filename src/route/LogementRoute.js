@@ -7,6 +7,6 @@ router.use(verifyApiKey);
 
 // Route pour récupérer les jobs en fonction du searchstring
 router.get('/getlogement/:type/:city', logementController.getLogement);
-router.get('/getlogementwithtype/:type/:city/:ftype',  logementController.geLogementwithtype);
+router.get('/getlogementwithtype/:type?/:city?/:ftype?',  logementController.geLogementwithtype);
   
 module.exports = router;

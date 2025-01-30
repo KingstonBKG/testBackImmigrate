@@ -108,8 +108,12 @@ const geLogementwithtype = async (req, res) => {
     var city = req.params.city;
     var ftype = req.params.ftype;
 
+    const baseUrl = "https://www.padmapper.com";
+    const pathParts = [type, city, ftype].filter(Boolean); // Supprime les undefined
+    const url = `${baseUrl}/${pathParts.map(encodeURIComponent).join('/')}`;
+
     // URL de la page à scraper
-    const url = `https://www.padmapper.com/${encodeURIComponent(type)}/${encodeURIComponent(city)}/${encodeURIComponent(ftype)}`;
+    // const url = `https://www.padmapper.com/${encodeURIComponent(type)}/${encodeURIComponent(city)}/${encodeURIComponent(ftype)}`;
     console.log(url);
     // Fonction pour nettoyer les données extraites
     const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
