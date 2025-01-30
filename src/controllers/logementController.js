@@ -19,8 +19,9 @@ const getLogement = async (req, res) => {
 
     const baseUrl = "https://www.padmapper.com";
     const pathParts = [type, city, bed, pet].filter(Boolean); // Supprime les undefined
-    const url = `${baseUrl}/${pathParts.join('/')}/?property-categories=${filter}&lease-terms=${term}`;
+    const url = `${baseUrl}/${pathParts.join('/')}?property-categories=${filter}&lease-terms=${term}`;
 
+    
     // URL de la page à scraper
     // const url = `https://www.padmapper.com/${encodeURIComponent(type)}/${encodeURIComponent(city)}/${encodeURIComponent(bed)}/?property-categories=${filter}`;
     // const url = `https://www.kangalou.com/fr/location/${encodeURIComponent(city)}/page=${encodeURIComponent(page)}`;
