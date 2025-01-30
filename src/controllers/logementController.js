@@ -9,9 +9,9 @@ const getLogement = async (req, res) => {
     var bed = req.params.bed;
     var pet = req.params.pet;
 
-    var filter = req.query.filter;
-    var term = req.query.term;
-
+    const propertyCategories = req.query["property-categories"];
+    const leaseTerms = req.query["lease-term"];
+    
     // Vérifiez que la ville est fournie
     if (!city) {
         return res.status(400).json({ error: 'Le paramètre de ville est requis.' });
@@ -19,13 +19,8 @@ const getLogement = async (req, res) => {
 
     const baseUrl = "https://www.padmapper.com";
     const pathParts = [type, city, bed, pet].filter(Boolean); // Supprime les undefined
-    const url = `${baseUrl}/${pathParts.join('/')}?property-categories=${filter}&lease-terms=${term}`;
-
+    const url = `${baseUrl}/${pathParts.join('/')}?property-categories=${propertyCategories}&lease-terms=${leaseTerms}`;
     
-    // URL de la page à scraper
-    // const url = `https://www.padmapper.com/${encodeURIComponent(type)}/${encodeURIComponent(city)}/${encodeURIComponent(bed)}/?property-categories=${filter}`;
-    // const url = `https://www.kangalou.com/fr/location/${encodeURIComponent(city)}/page=${encodeURIComponent(page)}`;
-
     // Fonction pour nettoyer les données extraites
     const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
 
