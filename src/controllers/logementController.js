@@ -1,5 +1,6 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const { query } = require('express');
 
 
 // Méthode pour récupérer les jobs
@@ -9,9 +10,13 @@ const getLogement = async (req, res) => {
     var bed = req.params.bed;
     var price = req.params.price;
     var pet = req.params.pet;
+    var pet = req.params.pet;
 
     const propertyCategories = req.query["property-categories"];
     const leaseTerms = req.query["lease-term"];
+    const minSquareFeet = req.query["min-square-feet"];
+
+    console.log(req.query);
     
     // Vérifiez que la ville est fournie
     if (!city) {
@@ -20,7 +25,7 @@ const getLogement = async (req, res) => {
 
     const baseUrl = "https://www.padmapper.com";
     const pathParts = [type, city, bed, price, pet].filter(Boolean); // Supprime les undefined
-    const url = `${baseUrl}/${pathParts.join('/')}?property-categories=${propertyCategories}&lease-terms=${leaseTerms}`;
+    const url = `${baseUrl}/${pathParts.join('/')}?property-categories=${propertyCategories}&lease-terms=${leaseTerms}&min-square-feet=${minSquareFeet}`;
     
     // Fonction pour nettoyer les données extraites
     const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
