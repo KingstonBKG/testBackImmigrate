@@ -94,7 +94,7 @@ const getEducation = async (req, res) => {
             name: columns[0]?.textContent.trim(),
             type: columns[1]?.textContent.trim(),
             city: columns[2]?.textContent.trim(),
-            province: columns[3]?.textContent.trim(),
+          
             status: columns[4]?.textContent.trim(),
           };
         });
