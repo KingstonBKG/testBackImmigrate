@@ -2,6 +2,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const puppeteer = require('puppeteer');
+const { timeouts } = require('retry');
 
 
 // Méthode pour récupérer les jobs
@@ -186,9 +187,62 @@ const getJobdetails = async (req, res) => {
   }
 };
 
+// Méthode pour récupérer les jobs
+const applyJob = async (req, res) => {
+  // Vous pouvez récupérer l'ID de l'offre à partir des données renvoyées par l'API (exemple: 43126771)
+  const jobId = req.query.jobId || '';  // Récupérer l'ID de l'offre d'emploi depuis les paramètres de la requête
+
+  // Vérification que l'ID de l'offre est bien présent
+  // if (!jobId) {
+  //   return res.status(400).json({ error: 'ID de l\'offre d\'emploi manquant' });
+  // }
+
+  // Construction de l'URL dynamique en fonction de l'ID de l'offre d'emploi
+  const url = `https://www.guichetemplois.gc.ca/rechercheemplois/offredemploi/43331856?source=searchresults`;
+  // const url = `https://www.guichetemplois.gc.ca/rechercheemplois/offredemploi/${jobId}?source=searchresults`;
+
+  const browser = await puppeteer.launch({ headless: false });
+  const page = await browser.newPage();
+
+
+  try {
+    page.setDefaultNavigationTimeout(500000);
+    page.setDefaultTimeout(500000)
+
+    await page.goto(url);
+
+    await page.waitForSelector("#j_id_33:outOfCanadaCloseBtn", { timeout: 100000 });
+    await page.click("#j_id_33:outOfCanadaCloseBtn");
+    await page.waitForSelector("#applynowbutton", { timeout: 100000 });
+    await page.click("#applynowbutton");
+
+    // // Récupérer le contenu HTML de la page
+    // const { data } = await axios.get(url);
+    // const $ = cheerio.load(data); 
+
+    // // Tableau pour stocker les offres d'emploi
+    // const jobApplyMethods = [];
+    
+    // const email = $('howtoapply').find('p a').text();
+
+    // const jobapplyMethod = { email };
+    // jobApplyMethods.push(jobapplyMethod);
+
+    // // Retourner les résultats au format JSON
+    // res.json(jobApplyMethods);
+
+    // browser.close();
+  } catch (e) {
+    
+    console.log(e);
+    browser.close();
+  }
+};
+
 
 
 module.exports = {
   getJob,
-  getJobdetails
+  getJobdetails,
+  applyJob
 };
