@@ -1,6 +1,5 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-const { query } = require('express');
 
 
 // Méthode pour récupérer les jobs

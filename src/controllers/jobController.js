@@ -1,6 +1,7 @@
 
 const axios = require('axios');
 const cheerio = require('cheerio');
+const puppeteer = require('puppeteer');
 
 
 // Méthode pour récupérer les jobs
@@ -11,12 +12,20 @@ const getJob = async (req, res) => {
 
   // URL de la page à scraper
   const url = `https://www.guichetemplois.gc.ca/jobsearch/rechercheemplois?searchstring=${encodeURIComponent(searchstring)}&locationstring=${encodeURIComponent(locationstring)}&locationparam=&fper=${encodeURIComponent(fper)}`;
-
+  
   // Fonction pour nettoyer les données extraites
   const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
 
   // Fonction pour nettoyer l'URL (retirer le jsessionid)
   const cleanUrl = (url) => url.replace(/;jsessionid=[^?]+/, '');
+
+  const browser = await puppeteer.launch({ headless: true });
+  const page = await browser.newPage();
+  await page.goto('https://www.guichetemplois.gc.ca/jobsearch/rechercheemplois');
+  browser.close();
+
+ 
+
 
   // Fonction pour scraper les offres d'emploi
   try {
@@ -71,7 +80,7 @@ const getJob = async (req, res) => {
 // Méthode pour récupérer les jobs
 const getJobdetails = async (req, res) => {
   const searchstring = req.query.details || '';
-  
+
   // Vous pouvez récupérer l'ID de l'offre à partir des données renvoyées par l'API (exemple: 43126771)
   const jobId = req.query.jobId || '';  // Récupérer l'ID de l'offre d'emploi depuis les paramètres de la requête
 
@@ -115,20 +124,20 @@ const getJobdetails = async (req, res) => {
 
 
 
-      $('div[property="responsibilities"] ul.csvlist').each((index, element) => {
-        responsabilite = cleanText($(element).find('li').text());
+    $('div[property="responsibilities"] ul.csvlist').each((index, element) => {
+      responsabilite = cleanText($(element).find('li').text());
 
-      });
-      $('div[property="experienceRequirements"] ul.csvlist').each((index, element) => {
-        expetspec = cleanText($(element).find('li').text());
-      });
-      $('div[property="skills"] ul.csvlist').each((index, element) => {
-        renseignementsup = cleanText($(element).find('li').text());
-      });
-      $('div.job-audience ul').each((index, element) => {
-        jobaudience = cleanText($(element).find('li').text());
-      });
-  
+    });
+    $('div[property="experienceRequirements"] ul.csvlist').each((index, element) => {
+      expetspec = cleanText($(element).find('li').text());
+    });
+    $('div[property="skills"] ul.csvlist').each((index, element) => {
+      renseignementsup = cleanText($(element).find('li').text());
+    });
+    $('div.job-audience ul').each((index, element) => {
+      jobaudience = cleanText($(element).find('li').text());
+    });
+
 
 
     // Créer un objet avec les informations extraites
@@ -157,7 +166,7 @@ const getJobdetails = async (req, res) => {
 
 
     res.json(jobDetails);
-    
+
 
     // Retourner les résultats au format JSON
   } catch (error) {
