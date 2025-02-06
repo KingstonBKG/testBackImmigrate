@@ -7,4 +7,12 @@ router.use(verifyApiKey);
 
 // Route pour récupérer les jobs en fonction du searchstring
 router.get('/getservices',  santeController.getServices);
+
 module.exports = router;
+
+//router.get('/getservices?ffilter',  santeController.getServices);
+// router.get('/getservices/details/:link1?/:link2?/:link3?',  santeController.getServicesDetails);
+// router.get('/getservices/details/details/:link1?/:link2?/:link3?',  santeController.getServicesDetailsDetails);
+  
+
+

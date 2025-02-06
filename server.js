@@ -4,6 +4,9 @@ const jobRoute = require('./src/route/Jobroute');
 const LogementRoute = require('./src/route/LogementRoute');
 const santeRoute = require('./src/route/santeRoute');
 const educationRoute=require('./src/route/educationRoute');
+
+const resautageRoute=require('./src/route/resautageRoute.js');
+
 const app = express();
 require('dotenv').config();
 
@@ -34,7 +37,7 @@ app.use('/api/job', jobRoute);  // La route pour récupérer les jobs
 app.use('/api/logement', LogementRoute);  // La route pour récupérer les logements
 app.use('/api/sante', santeRoute);
 app.use('/api/education',educationRoute);// la route pour recuper les ecoles 
-
+app.use('/api/resautage',resautageRoute);
 
 app.get('/api/*', (req, res) => {
   res.status(404).json({ error: 'API route not found' });
