@@ -24,7 +24,7 @@ const getServices = async (req, res) => {
     $('.pastille').each((index, element) => {
       const title = cleanText($(element).find('.title').text());
       const address = cleanText($(element).find('.ville').text());
-      const link = `https://www.indexsante.ca${$(element).find('a').attr('href')}`;
+      const link = `${$(element).find('a').attr('href')}`;
       const logo = `https://www.indexsante.ca${$(element).find('img').attr('src')}`;
 
       var result = { title, address, link, logo };
