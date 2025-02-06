@@ -14,7 +14,7 @@ const getServices = async (req, res) => {
   const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
 
   try {
-console.log(url)
+    console.log(url)
 
     const { data } = await axios.get(url);
     const $ = cheerio.load(data);
@@ -95,10 +95,81 @@ console.log(url)
   }
 };
 
+const getServiceDetails = async (req, res) => {
+  const link1 = req.params.link1
+  const link2 = req.params.link2
+  const link3 = req.params.link3
+  const link4 = req.params.link4
+
+  const url = `https://www.indexsante.ca/${link1}/${link2}/${link3}/${link4}`;
+
+  const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
+  console.log(url)
+
+  try {
+    
+
+    const { data } = await axios.get(url);
+    const $ = cheerio.load(data);
+
+    const infos = [];
+    const services = [];
+
+    const baniere = `https://www.indexsante.ca${$('div#fiche-header a img').attr('src')}`;
+    const logo = `https://www.indexsante.ca${$('div#rdv-logo img').attr('src')}`;
+
+    const numero = $('div#fiche-telephone-appeler a').text();
+    const website = $('#fiche-web-url a').attr('href');
+    const takerdv = $('#rendez-vous p a').attr('href');
+    const address = $('#fiche-adresse .adresse').text();
+    const teleconsultation = $('#teleconsultation').text();
+
+
+
+    $('#horaire .horaire-icon').each((index, element) => {
+      const title = cleanText($(element).text());
+
+      var horaire = { title};
+      console.log(horaire);
+      services.push(horaire);
+    })
+
+    // $('#fiche-description').each((index, element) => {
+    //   const title = `${cleanText($(element).find('h2').text())}, `;
+    //   const text = `${cleanText($(element).find('p').text())}, `;
+
+    //   var result = { title, text};
+    //   infos.push(result);
+    // })
+
+    // $('.region a').each((index, element) => {
+    //   const title = $(element).text();
+    //   const link = `https://www.indexsante.ca${$(element).attr('href')}`;
+
+    //   var result = { title, link };
+    //   nearby.push(result);
+    // })
+
+    res.json({
+      baniere,
+      logo,
+      numero,
+      website,
+      takerdv,
+      address,
+      teleconsultation,
+      services,
+      // infos
+    });
+
+  } catch (error) {
+    console.error("Erreur lors du scraping :", error.message);
+  }
+};
+
 module.exports = {
   getServices,
-  // getServicesDetails,
-  // getServicesDetailsDetails
+  getServiceDetails
 
 };
 
