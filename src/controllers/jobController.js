@@ -12,19 +12,30 @@ const getJob = async (req, res) => {
 
   // URL de la page à scraper
   const url = `https://www.guichetemplois.gc.ca/jobsearch/rechercheemplois?searchstring=${encodeURIComponent(searchstring)}&locationstring=${encodeURIComponent(locationstring)}&locationparam=&fper=${encodeURIComponent(fper)}`;
-  
+
   // Fonction pour nettoyer les données extraites
   const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
 
   // Fonction pour nettoyer l'URL (retirer le jsessionid)
   const cleanUrl = (url) => url.replace(/;jsessionid=[^?]+/, '');
 
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
-  await page.goto('https://www.guichetemplois.gc.ca/jobsearch/rechercheemplois');
-  browser.close();
+  // const browser = await puppeteer.launch({ headless: false });
+  // const page = await browser.newPage();
 
- 
+
+  // try {
+  //   page.setDefaultNavigationTimeout(500000);
+  //   page.setDefaultTimeout(500000)
+
+  //   await page.goto(url);
+
+  //   browser.close();
+  // } catch ($e) {
+  //   browser.close();
+  //   console.log('erreur timeout')
+  // }
+
+
 
 
   // Fonction pour scraper les offres d'emploi
