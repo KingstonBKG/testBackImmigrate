@@ -198,7 +198,7 @@ const applyJob = async (req, res) => {
   // }
 
   // Construction de l'URL dynamique en fonction de l'ID de l'offre d'emploi
-  const url = `https://www.guichetemplois.gc.ca/rechercheemplois/offredemploi/43331856?source=searchresults`;
+  const url = `https://www.guichetemplois.gc.ca/rechercheemplois/offredemploi/43267829?source=searchresults`;
   // const url = `https://www.guichetemplois.gc.ca/rechercheemplois/offredemploi/${jobId}?source=searchresults`;
 
   const browser = await puppeteer.launch({ headless: false });
@@ -209,12 +209,15 @@ const applyJob = async (req, res) => {
     page.setDefaultNavigationTimeout(500000);
     page.setDefaultTimeout(500000)
 
-    await page.goto(url);
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-    await page.waitForSelector("#j_id_33:outOfCanadaCloseBtn", { timeout: 100000 });
-    await page.click("#j_id_33:outOfCanadaCloseBtn");
-    await page.waitForSelector("#applynowbutton", { timeout: 100000 });
-    await page.click("#applynowbutton");
+    await page.waitForSelector('.how-to-apply > p > button', { timeout: 100000 });
+    await page.click('.how-to-apply > p > button');
+    const redirectURL = await page.evaluate(() => {
+      const button = document.querySelector('input[type="submit"]');
+      console.log(button);
+      return button ? button.getAttribute('data-redirect') : null;
+    });
 
     // // Récupérer le contenu HTML de la page
     // const { data } = await axios.get(url);
@@ -223,13 +226,13 @@ const applyJob = async (req, res) => {
     // // Tableau pour stocker les offres d'emploi
     // const jobApplyMethods = [];
     
-    // const email = $('howtoapply').find('p a').text();
+    // const weblink = $('input[type="submit"]').text;
 
-    // const jobapplyMethod = { email };
+    // const jobapplyMethod = { weblink };
     // jobApplyMethods.push(jobapplyMethod);
 
-    // // Retourner les résultats au format JSON
-    // res.json(jobApplyMethods);
+    // Retourner les résultats au format JSON
+    res.json(redirectURL);
 
     // browser.close();
   } catch (e) {
