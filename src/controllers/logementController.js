@@ -296,9 +296,6 @@ const getLogementDetails = async (req, res) => {
     const link = decodeURIComponent(req.params[0]);
     console.log("Lien reçu :", link);
 
-    if (!link.startsWith("https")) {
-        return res.status(400).json({ error: "Lien invalide" });
-    }
 
     const url = `${link}`;
     const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
