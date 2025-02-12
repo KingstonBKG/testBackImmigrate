@@ -68,6 +68,7 @@ const getEducation = async (req, res) => {
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     await page.goto(url);
+    await page.setDefaultTimeout(50000)
 
     // Sélectionner toutes les options de la liste des villes
     const cities = await page.$$eval("select#wb-auto-20 option", (options) => {

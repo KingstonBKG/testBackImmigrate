@@ -3,6 +3,7 @@ const cors = require('cors');
 const jobRoute = require('./src/route/Jobroute');
 const LogementRoute = require('./src/route/LogementRoute');
 const santeRoute = require('./src/route/santeRoute');
+const searchRoute = require('./src/route/searchRoute');
 const educationRoute=require('./src/route/educationRoute');
 
 const resautageRoute=require('./src/route/resautageRoute.js');
@@ -38,6 +39,7 @@ app.use('/api/logement', LogementRoute);  // La route pour récupérer les logem
 app.use('/api/sante', santeRoute);
 app.use('/api/education',educationRoute);// la route pour recuper les ecoles 
 app.use('/api/resautage',resautageRoute);
+app.use('/api/search', searchRoute);
 
 app.get('/api/*', (req, res) => {
   res.status(404).json({ error: 'API route not found' });
