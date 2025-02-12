@@ -5,6 +5,8 @@ const puppeteer = require('puppeteer');
 const { promise } = require('zod');
 
 
+
+
 // Méthode pour récupérer les jobs
 const getLogement = async (req, res) => {
     var type = req.params.type;
@@ -13,6 +15,8 @@ const getLogement = async (req, res) => {
     var price = req.params.price;
     var pet = req.params.pet;
     var pet = req.params.pet;
+
+    
 
     const propertyCategories = req.query["property-categories"];
     const leaseTerms = req.query["lease-term"];
@@ -24,6 +28,10 @@ const getLogement = async (req, res) => {
     if (!city) {
         return res.status(400).json({ error: 'Le paramètre de ville est requis.' });
     }
+
+    city = city.toLowerCase().replace(/\s+/g, '-');
+
+    
 
     const baseUrl = "https://www.padmapper.com";
     const pathParts = [type, city, bed, price, pet].filter(Boolean); // Supprime les undefined
