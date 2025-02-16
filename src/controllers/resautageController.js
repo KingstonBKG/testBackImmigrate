@@ -3,8 +3,7 @@ const puppeteer = require("puppeteer");
 const cleanText = (text) => text.trim().replace(/\s+/g, " ");
 
 const getResautage = async (req, res) => {
-    const url = "http://mentoratquebec.org/programmes-de-mentorat/";
-    
+    const url = "http://mentoratquebec.org/programmes-de-mentorat/";    
     try {
       const browser = await puppeteer.launch({
         headless: true,
