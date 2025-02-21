@@ -1,11 +1,13 @@
 const express = require("express");
 const cors = require("cors");
+const admin = require('firebase-admin');
 const jobRoute = require("./src/route/Jobroute");
 const LogementRoute = require("./src/route/LogementRoute");
 const santeRoute = require("./src/route/santeRoute");
 const searchRoute = require("./src/route/searchRoute");
 const educationRoute = require("./src/route/educationRoute");
 const educaloiRoute = require("./src/route/educaloiRoutes.js");
+// const notificationRoute = require("./src/route/notificationRoute");
 
 const resautageRoute = require("./src/route/resautageRoute.js");
 
@@ -30,6 +32,12 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json()); // Pour pouvoir parser les requêtes JSON
 
+// Initialisation de Firebase Admin
+// const serviceAccount = require('./chemin-vers-votre-fichier-serviceAccountKey.json');
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount)
+// });
+
 // Définition des routes
 
 // Lancer le serveur
@@ -42,6 +50,35 @@ app.use("/api/education", educationRoute); // la route pour recuper les ecoles
 app.use("/api/resautage", resautageRoute);
 app.use("/api/search", searchRoute);
 app.use("/api/aide-judiciaire", educaloiRoute);
+// app.use("/api/notifications", notificationRoute);
+
+// Nouvelle route pour les notifications
+// app.post('/api/notifications/send', async (req, res) => {
+//   try {
+//     const { token, title, body } = req.body;
+    
+//     const message = {
+//       notification: {
+//         title,
+//         body,
+//       },
+//       token: token
+//     };
+
+//     const response = await admin.messaging().send(message);
+//     res.status(200).json({ 
+//       success: true, 
+//       message: 'Notification envoyée avec succès',
+//       response 
+//     });
+//   } catch (error) {
+//     console.error('Erreur lors de l\'envoi de la notification:', error);
+//     res.status(500).json({ 
+//       success: false, 
+//       error: 'Erreur lors de l\'envoi de la notification' 
+//     });
+//   }
+// });
 
 app.get("/api/*", (req, res) => {
   res.status(404).json({ error: "API route not found" });

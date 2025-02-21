@@ -71,7 +71,7 @@ const getAidesJudiciaires = async (req, res) => {
           dossier.querySelector(".single-dossier-list_title")?.innerText
         );
         const link = dossier.href;
-        const imageUrl = dossier.querySelector("img")?.src;
+        const imageUrl = dossier.querySelector(".lazyload")?.dataset.src;
 
         dossiersList.push({
           type: "regular",
