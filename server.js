@@ -7,6 +7,7 @@ const santeRoute = require("./src/route/santeRoute");
 const searchRoute = require("./src/route/searchRoute");
 const educationRoute = require("./src/route/educationRoute");
 const educaloiRoute = require("./src/route/educaloiRoutes.js");
+const serviceRoute = require("./src/route/serviceRoutes.js");
 // const notificationRoute = require("./src/route/notificationRoute");
 
 const resautageRoute = require("./src/route/resautageRoute.js");
@@ -50,6 +51,7 @@ app.use("/api/education", educationRoute); // la route pour recuper les ecoles
 app.use("/api/resautage", resautageRoute);
 app.use("/api/search", searchRoute);
 app.use("/api/aide-judiciaire", educaloiRoute);
+app.use("/api/service", serviceRoute);
 // app.use("/api/notifications", notificationRoute);
 
 // Nouvelle route pour les notifications
