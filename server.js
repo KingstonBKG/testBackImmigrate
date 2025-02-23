@@ -52,6 +52,7 @@ app.use("/api/resautage", resautageRoute);
 app.use("/api/search", searchRoute);
 app.use("/api/aide-judiciaire", educaloiRoute);
 app.use("/api/service", serviceRoute);
+
 // app.use("/api/notifications", notificationRoute);
 
 // Nouvelle route pour les notifications
