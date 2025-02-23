@@ -14,6 +14,8 @@ const getService = async (req, res) => {
 
         const page = await browser.newPage();
 
+        // Optimisation : Bloquer les ressources inutiles
+
         // Aller à la page (avec un seul appel)
         await page.goto(url, { waitUntil: 'domcontentloaded' });
 
