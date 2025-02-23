@@ -1,5 +1,4 @@
 const cheerio = require('cheerio');
-// const puppeteer = require('puppeteer');
 const puppeteer = require('puppeteer-core');
 
 const getService = async (req, res) => {
@@ -7,31 +6,44 @@ const getService = async (req, res) => {
     const url = "https://ircc.canada.ca/francais/nouveaux/services/index.asp#table1caption";
     const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
 
-    const browser = await puppeteer.connect({
-        browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984' // Remplace par ta clé API Browserless
-    });
-
-    const page = await browser.newPage();
-
     try {
-        page.setDefaultTimeout(50000);
-        await page.goto(url, { waitUntil: 'networkidle0' })
+        const browser = await puppeteer.connect({
+            browserWSEndpoint: 'wss://chrome.browserless.io?token=TON_TOKEN',
+            timeout: 30000
+        });
 
-        // Attendre que l'élément à cliquer soit visible et cliquer dessus
-        await page.waitForSelector('#textPostalCode');
+        const page = await browser.newPage();
+
+        // Optimisation : Bloquer les ressources inutiles
+        await page.setRequestInterception(true);
+        page.on('request', (req) => {
+            if (['image', 'stylesheet', 'font', 'script'].includes(req.resourceType())) {
+                req.abort();
+            } else {
+                req.continue();
+            }
+        });
+
+        // Aller à la page (avec un seul appel)
+        await page.goto(url, { waitUntil: 'domcontentloaded' });
+
+        // Attendre que l'élément soit chargé (avec timeout pour éviter le blocage)
+        await page.waitForSelector('#textPostalCode', { timeout: 5000 });
+
+        // Remplir le formulaire
         await page.type('#textPostalCode', recherche, { delay: 50 });
         await page.keyboard.press('Enter');
-        await page.waitForSelector('select');
-        await page.click('select');
+
+        // Attendre que la liste déroulante soit chargée
+        await page.waitForSelector('select[name="table1_length"]', { timeout: 5000 });
         await page.select('select[name="table1_length"]', '20');
+        
+        // Petite pause pour attendre l'affichage des résultats
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-
-        const pageContent = await page.content(); // Récupère le HTML complet de la page mise à jour
-
-
+        // Récupération du HTML et parsing
+        const pageContent = await page.content();
         const $ = cheerio.load(pageContent);
-
 
         const infoservices = [];
         const services = [];
@@ -39,10 +51,10 @@ const getService = async (req, res) => {
         $('tbody tr').each((index, element) => {
             const distance = cleanText($(element).find('td:nth-child(1)').text());
             const title = cleanText($(element).find('td:nth-child(2) p a:nth-child(1)').text());
-            const email = cleanText($(element).find('td:nth-child(2)  a:nth-child(3)').text());
+            const email = cleanText($(element).find('td:nth-child(2) a:nth-child(3)').text());
             const address = cleanText($(element).find('td:nth-child(2) a:nth-child(2)').text());
             const link = $(element).find('td:nth-child(2) p a').attr('href');
-            // Extract phone number from the <td> element
+
             let phone = '';
             const tdContent = $(element).find('td:nth-child(2)').html();
             if (tdContent) {
@@ -54,35 +66,21 @@ const getService = async (req, res) => {
                 });
             }
 
-
-            const service = { title, distance, address, phone, email, link };
-            infoservices.push(service);
+            infoservices.push({ title, distance, address, phone, email, link });
         });
-
 
         $('tbody tr').each((index, element) => {
             const title = cleanText($(element).find('td:nth-child(3) li').text());
-          
-
-
-            const service = { title };
-            services.push(service);
+            services.push({ title });
         });
 
-        // Retourner les résultats au format JSON
-    res.json({infoservices, services});
-        await browser.close();
+        res.json({ infoservices, services });
 
+        await browser.close();
     } catch (e) {
         console.error('Erreur :', e.message);
         res.status(500).json({ error: "Une erreur est survenue lors du scraping." });
     }
 };
 
-
-
-
-
-module.exports = {
-    getService
-};
+module.exports = { getService };
