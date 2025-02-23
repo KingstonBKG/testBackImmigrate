@@ -14,16 +14,6 @@ const getService = async (req, res) => {
 
         const page = await browser.newPage();
 
-        // Optimisation : Bloquer les ressources inutiles
-        await page.setRequestInterception(true);
-        page.on('request', (req) => {
-            if (['image', 'stylesheet', 'font', 'script'].includes(req.resourceType())) {
-                req.abort();
-            } else {
-                req.continue();
-            }
-        });
-
         // Aller à la page (avec un seul appel)
         await page.goto(url, { waitUntil: 'domcontentloaded' });
 
@@ -78,7 +68,7 @@ const getService = async (req, res) => {
 
         await browser.close();
     } catch (e) {
-        console.log('Erreur :', e.message);
+        console.error('Erreur :', e.message);
         res.status(500).json({ error: "Une erreur est survenue lors du scraping." });
     }
 };
