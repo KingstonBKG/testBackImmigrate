@@ -22,12 +22,12 @@ const getService = async (req, res) => {
 
         // Attendre que l'élément à cliquer soit visible et cliquer dessus
         await page.waitForSelector('#textPostalCode');
-        await page.type('#textPostalCode', recherche, { delay: 100 });
+        await page.type('#textPostalCode', recherche, { delay: 50 });
         await page.keyboard.press('Enter');
         await page.waitForSelector('select');
         await page.click('select');
         await page.select('select[name="table1_length"]', '20');
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
 
         const pageContent = await page.content(); // Récupère le HTML complet de la page mise à jour
