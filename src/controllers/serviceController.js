@@ -1,4 +1,3 @@
-const axios = require('axios');
 const cheerio = require('cheerio');
 // const puppeteer = require('puppeteer');
 const puppeteer = require('puppeteer-core');
@@ -9,10 +8,8 @@ const getService = async (req, res) => {
     const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
 
     const browser = await puppeteer.connect({
-        headless: false,
         browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984' // Remplace par ta clé API Browserless
     });
-    // const browser = await puppeteer.launch({ headless: true });
 
     const page = await browser.newPage();
 
