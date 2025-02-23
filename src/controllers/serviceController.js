@@ -8,7 +8,7 @@ const getService = async (req, res) => {
 
     try {
         const browser = await puppeteer.connect({
-            browserWSEndpoint: 'wss://chrome.browserless.io?token=TON_TOKEN',
+            browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984',
             timeout: 30000
         });
 
@@ -78,7 +78,7 @@ const getService = async (req, res) => {
 
         await browser.close();
     } catch (e) {
-        console.error('Erreur :', e.message);
+        console.log('Erreur :', e.message);
         res.status(500).json({ error: "Une erreur est survenue lors du scraping." });
     }
 };
