@@ -15,7 +15,7 @@ const getService = async (req, res) => {
 
     try {
         page.setDefaultTimeout(50000);
-        await page.goto(url);
+        await page.goto(url, { waitUntil: 'networkidle0' })
 
         // Attendre que l'élément à cliquer soit visible et cliquer dessus
         await page.waitForSelector('#textPostalCode');
