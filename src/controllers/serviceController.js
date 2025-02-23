@@ -116,7 +116,7 @@ const getService = async (req, res) => {
 
         // Attendre que la liste déroulante soit chargée
         await page.waitForSelector('select[name="table1_length"]', { timeout: 5000 });
-        await page.select('select[name="table1_length"]', 'tous les');
+        await page.select('select[name="table1_length"]', '-1');
         
         // Petite pause pour attendre l'affichage des résultats
         await new Promise(resolve => setTimeout(resolve, 3000));
