@@ -5,6 +5,6 @@ const verifyApiKey = require('../config/verifyApiKey');
 
 router.use(verifyApiKey);
 
-router.get('/geteducation',educationController.getEducation);
+router.get('/geteducation',educationController.scrapeCICIC);
 
 module.exports=router

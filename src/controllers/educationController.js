@@ -1,81 +1,63 @@
-const axios = require("axios");
-const cheerio = require("cheerio");
 const puppeteer = require('puppeteer-core');
 
-const getEducation = async (req, res) => {
-  const url =
-    "https://www.canada.ca/fr/immigration-refugies-citoyennete/services/etudier-canada/permis-etudes/preparer/liste-etablissements-enseignement-designes.html";
-
-  const cleanUrl = (url) => url.replace(/;jsessionid=[^?]+/, "");
+const scrapeCICIC = async (req, res) => {
   try {
-    const { data } = await axios.get(url);
-    const $ = cheerio.load(data);
+    const search = req.query.search;
 
-
-    //Démarrer le navigateur
     const browser = await puppeteer.connect({
       headless: true,
       browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984' // Remplace par ta clé API Browserless
     });
     const page = await browser.newPage();
-    await page.goto(url);
-    await page.setDefaultTimeout(50000)
 
-    // Sélectionner toutes les options de la liste des villes
-    const cities = await page.$$eval("select#wb-auto-20 option", (options) => {
-      return options
-        .map((option) => ({
-          value: option.value,
-          name: option.textContent.trim(),
-        }))
-        .filter((city) => city.value);
-    });
+    const url = `https://www.cicic.ca/869/results.canada?search=${search}`;
 
-    const result = [];
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 0 });
 
-    for (const city of cities) {
-      console.log(`Scraping city: ${city.name}`);
+    let allData = [];
+    let hasNextPage = true;
 
-      // Sélectionner la ville
-      await page.select("select#wb-auto-20", city.value);
-      await page.waitForSelector("#wb-auto-21 tbody tr");
+    while (hasNextPage) {
+      // Attendre que le tableau soit chargé
+      await page.waitForSelector('table.rgMasterTable tbody tr');
 
-      // Récupérer les écoles de la ville
-      const schools = await page.$$eval("#wb-auto-21 tbody tr", (rows) => {
-        return rows.map((row) => {
-          const columns = row.querySelectorAll("td");
+      // Récupérer les données de la page actuelle
+      const pageData = await page.evaluate(() => {
+        const rows = Array.from(document.querySelectorAll('table.rgMasterTable tbody tr'));
+        return rows.map(row => {
+          const tds = Array.from(row.querySelectorAll('td'));
+          const link = tds[1]?.querySelector('a')?.href || null;
           return {
-            name: columns[0]?.textContent.trim(),
-            type: columns[1]?.textContent.trim(),
-            city: columns[2]?.textContent.trim(),
-
-
-            status: columns[4]?.textContent.trim(),
+            tds: tds.map(td => td.textContent.trim()),
+            link: link,
           };
         });
       });
 
-      result.push({ city: city.name, schools });
-    }
-    console.log(result);
+      allData = allData.concat(pageData);
 
-    // Sauvegarder en JSON
-    // fs.writeFileSync('schools.json', JSON.stringify(result, null, 2));
-    res.json(result);
-    console.log("Data saved to schools.json");
+      // Vérifier s'il y a un bouton "Afficher plus" et cliquer dessus
+      const showMoreButton = await page.$('.result-more a');
+      if (showMoreButton) {
+        await Promise.all([
+          page.click('.result-more a'),
+          page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 0 }),
+        ]);
+      } else {
+        console.log("Toutes les pages ont été parcourues.");
+        hasNextPage = false;
+      }
+    }
 
     await browser.close();
+    return res.json(allData);
   } catch (error) {
-    console.error(
-      "Erreur lors du scraping ou de l'enregistrement :",
-      error.message
-    );
-    res.status(500).json({ error: "Erreur interne du serveur" });
+    console.error('Error scraping CICIC:', error);
+    return res.status(500).json({ error: 'An error occurred while scraping data.' });
   }
 };
 
 module.exports = {
-  getEducation,
-
+  scrapeCICIC
 };
 
