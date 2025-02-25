@@ -8,7 +8,9 @@ const searchRoute = require("./src/route/searchRoute");
 const educationRoute = require("./src/route/educationRoute");
 const educaloiRoute = require("./src/route/educaloiRoutes.js");
 const serviceRoute = require("./src/route/serviceRoutes.js");
+const gpsCoordinatesRoute = require("./src/route/gpsCoordinatesRoutes.js");
 // const notificationRoute = require("./src/route/notificationRoute");
+
 
 const resautageRoute = require("./src/route/resautageRoute.js");
 
@@ -52,6 +54,8 @@ app.use("/api/resautage", resautageRoute);
 app.use("/api/search", searchRoute);
 app.use("/api/aide-judiciaire", educaloiRoute);
 app.use("/api/service", serviceRoute);
+app.use("/api/geo", gpsCoordinatesRoute); 
+
 
 // app.use("/api/notifications", notificationRoute);
 
