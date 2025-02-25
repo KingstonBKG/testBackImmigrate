@@ -1,3 +1,4 @@
+// const puppeteer = require('puppeteer');
 const puppeteer = require('puppeteer-core');
 
 const scrapeCICIC = async (req, res) => {
@@ -6,7 +7,15 @@ const scrapeCICIC = async (req, res) => {
     const t = req.query.t;
     const sect = req.query.sect;
 
+    console.log(`Search parameter: ${search}`);
+    console.log(`T parameter: ${t}`);
 
+    // const browser = await puppeteer.launch({
+    //   headless: true,
+    //   args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    //   timeout: 600000
+    // });
+    
     const browser = await puppeteer.connect({
       headless: true,
       browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984' // Remplace par ta clé API Browserless
@@ -27,6 +36,7 @@ const scrapeCICIC = async (req, res) => {
       await page.keyboard.press('Enter');
     }
 
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
 
     while (hasNextPage) {
