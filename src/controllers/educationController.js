@@ -5,17 +5,10 @@ const scrapeCICIC = async (req, res) => {
   try {
     const search = req.query.search;
     const t = req.query.t;
-    const sect = req.query.sect;
 
     console.log(`Search parameter: ${search}`);
     console.log(`T parameter: ${t}`);
 
-    // const browser = await puppeteer.launch({
-    //   headless: true,
-    //   args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    //   timeout: 600000
-    // });
-    
     const browser = await puppeteer.connect({
       headless: true,
       browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984' // Remplace par ta clé API Browserless
@@ -23,7 +16,7 @@ const scrapeCICIC = async (req, res) => {
 
     const page = await browser.newPage();
 
-    const url = `https://www.cicic.ca/869/results.canada?search=${search}&t=${t}&sect=${sect}`;
+    const url = `https://www.cicic.ca/869/results.canada?search=${search}&t=${t}`;
 
     console.log(`Navigating to URL: ${url}`);
 
