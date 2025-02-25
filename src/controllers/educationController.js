@@ -1,10 +1,9 @@
-// const puppeteer = require('puppeteer');
 const puppeteer = require('puppeteer-core');
 
 const scrapeCICIC = async (req, res) => {
   try {
-    const search = req.query.search;
-    const t = req.query.t;
+    const search = req.query.search || '';
+    const t = req.query.t || '';
 
     console.log(`Search parameter: ${search}`);
     console.log(`T parameter: ${t}`);
@@ -16,7 +15,10 @@ const scrapeCICIC = async (req, res) => {
 
     const page = await browser.newPage();
 
-    const url = `https://www.cicic.ca/869/results.canada?search=${search}&t=${t}`;
+    let url = `https://www.cicic.ca/869/results.canada?search=${search}`;
+    if (t) {
+      url += `&t=${t}`;
+    }
 
     console.log(`Navigating to URL: ${url}`);
 
@@ -25,12 +27,11 @@ const scrapeCICIC = async (req, res) => {
     let allData = [];
     let hasNextPage = true;
 
-    if (t != '') {
+    if (t) {
       await page.keyboard.press('Enter');
     }
 
     await new Promise(resolve => setTimeout(resolve, 1000));
-
 
     while (hasNextPage) {
       // Attendre que le tableau soit chargé
@@ -64,7 +65,7 @@ const scrapeCICIC = async (req, res) => {
       }
     }
 
-    // await browser.close();
+    await browser.close();
     return res.json(allData);
   } catch (error) {
     console.error('Error scraping CICIC:', error);
