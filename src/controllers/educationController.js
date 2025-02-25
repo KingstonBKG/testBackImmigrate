@@ -3,19 +3,31 @@ const puppeteer = require('puppeteer-core');
 const scrapeCICIC = async (req, res) => {
   try {
     const search = req.query.search;
+    const t = req.query.t;
+    const sect = req.query.sect;
+
 
     const browser = await puppeteer.connect({
       headless: true,
       browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984' // Remplace par ta clé API Browserless
     });
+
     const page = await browser.newPage();
 
-    const url = `https://www.cicic.ca/869/results.canada?search=${search}`;
+    const url = `https://www.cicic.ca/869/results.canada?search=${search}&t=${t}&sect=${sect}`;
+
+    console.log(`Navigating to URL: ${url}`);
 
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 0 });
 
     let allData = [];
     let hasNextPage = true;
+
+    if (t != '') {
+      await page.keyboard.press('Enter');
+    }
+
+
 
     while (hasNextPage) {
       // Attendre que le tableau soit chargé
@@ -49,7 +61,7 @@ const scrapeCICIC = async (req, res) => {
       }
     }
 
-    await browser.close();
+    // await browser.close();
     return res.json(allData);
   } catch (error) {
     console.error('Error scraping CICIC:', error);
