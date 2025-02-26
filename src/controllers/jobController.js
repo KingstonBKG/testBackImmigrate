@@ -207,9 +207,9 @@ const applyJob = async (req, res) => {
       }
 
       // Vérifier l'email
-      const emailElement = document.querySelector("#howtoapply > p > a");
+      const emailElement = document.querySelector('a[href^="mailto:"]');
       if (emailElement) {
-        results.email = emailElement.textContent;
+        results.email = emailElement.href.replace('mailto:', '');
       }
 
       // Vérifier le lien externe
