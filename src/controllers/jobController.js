@@ -1,7 +1,6 @@
-
 const axios = require('axios');
 const cheerio = require('cheerio');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 const { timeouts } = require('retry');
 
 
@@ -19,24 +18,6 @@ const getJob = async (req, res) => {
 
   // Fonction pour nettoyer l'URL (retirer le jsessionid)
   const cleanUrl = (url) => url.replace(/;jsessionid=[^?]+/, '');
-
-  // const browser = await puppeteer.launch({ headless: false });
-  // const page = await browser.newPage();
-
-
-  // try {
-  //   page.setDefaultNavigationTimeout(500000);
-  //   page.setDefaultTimeout(500000)
-
-  //   await page.goto(url);
-
-  //   browser.close();
-  // } catch ($e) {
-  //   browser.close();
-  //   console.log('erreur timeout')
-  // }
-
-
 
 
   // Fonction pour scraper les offres d'emploi
@@ -189,56 +170,76 @@ const getJobdetails = async (req, res) => {
 
 // Méthode pour récupérer les jobs
 const applyJob = async (req, res) => {
-  // Vous pouvez récupérer l'ID de l'offre à partir des données renvoyées par l'API (exemple: 43126771)
-  const jobId = req.query.jobId || '';  // Récupérer l'ID de l'offre d'emploi depuis les paramètres de la requête
-
-  // Vérification que l'ID de l'offre est bien présent
-  // if (!jobId) {
-  //   return res.status(400).json({ error: 'ID de l\'offre d\'emploi manquant' });
-  // }
-
-  // Construction de l'URL dynamique en fonction de l'ID de l'offre d'emploi
-  const url = `https://www.guichetemplois.gc.ca/rechercheemplois/offredemploi/43267829?source=searchresults`;
-  // const url = `https://www.guichetemplois.gc.ca/rechercheemplois/offredemploi/${jobId}?source=searchresults`;
-
-  const browser = await puppeteer.launch({ headless: false });
-  const page = await browser.newPage();
-
+  const idjob = req.params.idjob; 
+  let browser;
 
   try {
-    page.setDefaultNavigationTimeout(500000);
-    page.setDefaultTimeout(500000)
+    const baseUrl = "https://www.guichetemplois.gc.ca/rechercheemplois/offredemploi";
+    const url = `${baseUrl}/${idjob}?source=searchresults`;
+    console.log(`Navigating to: ${url}`);
+
+    browser = await puppeteer.connect({
+      headless: true,
+      browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984'
+    });
+
+    const page = await browser.newPage();
+    page.setDefaultNavigationTimeout(30000);
+    page.setDefaultTimeout(30000);
 
     await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-    await page.waitForSelector('.how-to-apply > p > button', { timeout: 100000 });
-    await page.click('.how-to-apply > p > button');
-    const redirectURL = await page.evaluate(() => {
-      const button = document.querySelector('input[type="submit"]');
-      console.log(button);
-      return button ? button.getAttribute('data-redirect') : null;
+    // Vérifier si le bouton "Comment postuler" existe
+    const applyButtonExists = await page.$('.how-to-apply > p > button');
+    if (applyButtonExists) {
+      await page.click('.how-to-apply > p > button');
+      await page.waitForTimeout(1000); // Attendre que le contenu se charge
+    }
+
+    // Récupérer toutes les informations de postulation
+    const applicationInfo = await page.evaluate(() => {
+      const results = {};
+      
+      // Vérifier le bouton de redirection
+      const submitButton = document.querySelector('input[type="submit"]');
+      if (submitButton) {
+        results.redirectURL = submitButton.getAttribute('data-redirect');
+      }
+
+      // Vérifier l'email
+      const emailElement = document.querySelector('#howtoapply > p a');
+      if (emailElement) {
+        results.email = emailElement.textContent;
+      }
+
+      // Vérifier le lien externe
+      const externalLink = document.querySelector('#externalJobLink');
+      if (externalLink) {
+        results.externaljoblink = externalLink.getAttribute('href');
+      }
+
+      // Vérifier le texte de postulation
+      const applyText = document.querySelector('#howtoapply > p');
+      if (applyText) {
+        results.applyText = applyText.textContent.trim();
+      }
+
+      return results;
     });
 
-    // // Récupérer le contenu HTML de la page
-    // const { data } = await axios.get(url);
-    // const $ = cheerio.load(data); 
+    console.log('Application info:', applicationInfo);
+    await browser.close();
+    return res.json(applicationInfo);
 
-    // // Tableau pour stocker les offres d'emploi
-    // const jobApplyMethods = [];
-    
-    // const weblink = $('input[type="submit"]').text;
-
-    // const jobapplyMethod = { weblink };
-    // jobApplyMethods.push(jobapplyMethod);
-
-    // Retourner les résultats au format JSON
-    res.json(redirectURL);
-
-    // browser.close();
-  } catch (e) {
-    
-    console.log(e);
-    browser.close();
+  } catch (error) {
+    console.error('Error in applyJob:', error);
+    if (browser) {
+      await browser.close();
+    }
+    return res.status(500).json({ 
+      error: 'Error while fetching application information',
+      details: error.message 
+    });
   }
 };
 

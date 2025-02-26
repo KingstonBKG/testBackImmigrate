@@ -8,6 +8,6 @@ router.use(verifyApiKey);
 // Route pour récupérer les jobs en fonction du searchstring
 router.get('/getjob',  jobController.getJob);
 router.get('/getjobdetails',  jobController.getJobdetails);
-router.get('/applyjob',  jobController.applyJob);
+router.get('/applyjob/:idjob',  jobController.applyJob);
   
 module.exports = router;
