@@ -193,7 +193,7 @@ const applyJob = async (req, res) => {
     const applyButtonExists = await page.$('.how-to-apply > p > button');
     if (applyButtonExists) {
       await page.click('.how-to-apply > p > button');
-      await page.waitForTimeout(1000); // Attendre que le contenu se charge
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     // Récupérer toutes les informations de postulation
