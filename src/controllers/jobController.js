@@ -207,7 +207,7 @@ const applyJob = async (req, res) => {
       }
 
       // Vérifier l'email
-      const emailElement = document.querySelector('#howtoapply > p a');
+      const emailElement = document.querySelector("#howtoapply > p > a");
       if (emailElement) {
         results.email = emailElement.textContent;
       }
