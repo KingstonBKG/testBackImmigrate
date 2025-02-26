@@ -299,128 +299,6 @@ const geLogementwithfilter = async (req, res) => {
     }
 };
 
-// const getLogementDetails = async (req, res) => {
-//     const link = decodeURIComponent(req.params[0]);
-//     console.log("Lien reçu :", link);
-
-
-//     const url = `${link}`;
-//     const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
-
-//     const browser = await puppeteer.connect({
-//         headless: false,
-//         browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984' // Remplace par ta clé API Browserless
-//     });
-
-//     const page = await browser.newPage();
-
-//     try {
-//         page.setDefaultTimeout(50000);
-//         await page.goto(url);
-//         await page.waitForSelector('.MediaItem_MediaItem__2qqHp');
-//         await page.click('.MediaItem_MediaItem__2qqHp');
-//         const imgElements = await page.$$('.Image_imageTag__1q2pE');
-//         console.log(imgElements.length);
-
-//         let logementImageData = []; // Tableau pour stocker les données des images
-
-//         for (let imgElement of imgElements) {
-//             const srcSet = await imgElement.getProperty('srcset');
-//             const srcSetValue = await srcSet.jsonValue();
-
-//             if (srcSetValue) {
-//                 // Découper les différentes URLs en fonction des virgules
-//                 const imageUrls = srcSetValue.split(',').map(item => item.trim().split(' ')[0]);
-
-//                 // Pour chaque URL, retirer la query string et garder la partie avant le "?"
-//                 const cleanedImageUrls = imageUrls.map(url => url.split('?')[0]);
-
-//                 // Prendre la dernière URL nettoyée
-//                 logementImageData.push({
-//                     image: cleanedImageUrls[cleanedImageUrls.length - 1]
-//                 });
-//             }
-//         }
-
-
-//         console.log('fermeture du brower');
-//         browser.close();
-
-
-//         const { data } = await axios.get(url);
-//         const $ = cheerio.load(data);
-
-//         const logementdetails = [];
-//         const amenities = [];
-
-
-
-//         // 🛠️ **Récupération dynamique des infos du logement**
-//         let logementData = {};
-//         let similarslogementData = {};
-
-//         logementData.title = cleanText($('h1.FullDetail_street__16nT6').text().trim());
-//         logementData.phone = cleanText($('a.FullDetail_phoneNumber__2L7_k').text().trim());
-//         logementData.description = cleanText($('div.Description_text__hK1dE').text().trim());
-
-//         // const imageSrcSet = $('img.MediaItem_imageTag__ytQiK').attr('srcset');
-//         // let image = '';
-
-//         // if (imageSrcSet) {
-//         //     // Découper les différentes URLs en fonction des virgules
-//         //     const imageUrls = imageSrcSet.split(',').map(item => item.trim().split(' ')[0]);
-//         //     // Prendre la dernière URL de la liste
-//         //     logementData.image = imageUrls[imageUrls.length - 1];
-//         // }
-
-
-//         $('div.SummaryTable_summaryTable__1gSYh ul li').each((index, element) => {
-//             const text = $(element).text().trim();
-
-//             if (text.includes("Price")) {
-//                 logementData.price = text.replace("Price", "").trim();
-//             } else if (text.includes("Bedrooms")) {
-//                 logementData.bedrooms = text.replace("Bedrooms", "").trim();
-//             } else if (text.includes("Bathrooms")) {
-//                 logementData.Bathrooms = text.replace("Bathrooms", "").trim();
-//             } else if (text.includes("Available")) {
-//                 logementData.Available = text.replace("Available", "").trim();
-//             } else if (text.includes("Square Feet")) {
-//                 logementData.surface = text.replace("Square Feet", "").trim();
-//             } else if (text.includes("Min. Lease")) {
-//                 logementData.minlease = text.replace("Min. Lease", "").trim();
-//             } else if (text.includes("Address")) {
-//                 logementData.Address = text.replace("Address", "").trim();
-//             } else if (text.includes("Broker Fee?")) {
-//                 logementData.brokerfee = text.replace("Broker Fee?", "").trim();
-//             } else if (text.includes("Cats/Dogs Allowed?")) {
-//                 logementData.pets = text.replace("Cats/Dogs Allowed?", "").trim();
-//             }
-
-//         });
-
-//         // 🏢 **Récupération des équipements**
-//         $('div > div.Amenities_amenityContainer__3JHoG').each((index, element) => {
-//             const amenitie = $(element).find('div.Amenities_text__1hUI9').text().trim();
-//             amenities.push(amenitie);
-//         });
-
-
-
-//         var logementdetail = {
-//             ...logementData,  // Ajout dynamique des infos du logement
-//             logementImageData,
-//             amenities,
-//         };
-
-//         logementdetails.push(logementdetail);
-//         res.json(logementdetails);
-
-//     } catch (e) {
-//         console.error('Erreur :', e.message);
-//         res.status(500).json({ error: "Une erreur est survenue lors du scraping." });
-//     }
-// };
 const getLogementDetails = async (req, res) => {
     const link = decodeURIComponent(req.params[0]);
     console.log("Lien reçu :", link);
@@ -480,6 +358,7 @@ const getLogementDetails = async (req, res) => {
         logementData.title = cleanText($('h1.FullDetail_street__16nT6').text().trim());
         logementData.phone = cleanText($('a.FullDetail_phoneNumber__2L7_k').text().trim());
         logementData.description = cleanText($('div.Description_text__hK1dE').text().trim());
+        logementData.link = link;
 
         $('div.SummaryTable_summaryTable__1gSYh ul li').each((index, element) => {
             const text = $(element).text().trim();
