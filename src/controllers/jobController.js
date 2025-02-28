@@ -1,6 +1,6 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 const { timeouts } = require('retry');
 
 
@@ -178,13 +178,9 @@ const applyJob = async (req, res) => {
     const url = `${baseUrl}/${idjob}?source=searchresults`;
     console.log(`Navigating to: ${url}`);
 
-    // browser = await puppeteer.connect({
-    //   headless: true,
-    //   browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984'
-    // });
-    browser = await puppeteer.launch({
+    browser = await puppeteer.connect({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984'
     });
 
     const page = await browser.newPage();
@@ -204,14 +200,14 @@ const applyJob = async (req, res) => {
     const applicationInfo = await page.evaluate(() => {
       const results = {};
       
-      // Vérifier le bouton de redirection
-      const submitButton = document.querySelector('input[type="submit"]');
-      if (submitButton) {
-        results.redirectURL = submitButton.getAttribute('data-redirect');
-      }
+      // // Vérifier le bouton de redirection
+      // const submitButton = document.querySelector('input[type="submit"]');
+      // if (submitButton) {
+      //   results.redirectURL = submitButton.getAttribute('data-redirect');
+      // }
 
       // Vérifier l'email
-      const emailElement = document.querySelector('a[href^="mailto:"]');
+      const emailElement = document.querySelector('#howtoapply a[href^="mailto:"]');
       if (emailElement) {
         results.email = emailElement.href.replace('mailto:', '');
       }
@@ -223,9 +219,13 @@ const applyJob = async (req, res) => {
       }
 
       // Vérifier le texte de postulation
-      const applyText = document.querySelector('#howtoapply > p');
-      if (applyText) {
-        results.applyText = applyText.textContent.trim();
+      
+      const courrier_street = document.querySelector('.block_street').textContent.trim();
+      const courrier_city = document.querySelector('.block_city').textContent.trim();
+      const courrier_postcode = document.querySelector('.block_postalcode').textContent.trim();
+      const courrier = `${courrier_street} ${courrier_city} ${courrier_postcode}`;
+      if (courrier) {
+        results.courrier = courrier.trim();
       }
 
       return results;
