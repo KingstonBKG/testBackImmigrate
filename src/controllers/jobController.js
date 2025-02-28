@@ -178,11 +178,11 @@ const applyJob = async (req, res) => {
     const url = `${baseUrl}/${idjob}?source=searchresults`;
     console.log(`Navigating to: ${url}`);
 
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    const browser = await puppeteer.connect({
+        headless: false,
+        browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984' // Remplace par ta clé API Browserless
     });
-
+    
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(30000);
     page.setDefaultTimeout(30000);
