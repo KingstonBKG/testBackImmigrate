@@ -178,9 +178,9 @@ const applyJob = async (req, res) => {
     const url = `${baseUrl}/${idjob}?source=searchresults`;
     console.log(`Navigating to: ${url}`);
 
-    browser = await puppeteer.connect({
+    browser = await puppeteer.launch({
       headless: true,
-      browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984'
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
     const page = await browser.newPage();
@@ -220,12 +220,17 @@ const applyJob = async (req, res) => {
 
       // Vérifier le texte de postulation
       
-      const courrier_street = document.querySelector('.block_street').textContent.trim();
-      const courrier_city = document.querySelector('.block_city').textContent.trim();
-      const courrier_postcode = document.querySelector('.block_postalcode').textContent.trim();
-      const courrier = `${courrier_street} ${courrier_city} ${courrier_postcode}`;
-      if (courrier) {
-        results.courrier = courrier.trim();
+      // Vérifier les informations de courrier
+      const courrierStreetElement = document.querySelector('.block_street');
+      const courrierCityElement = document.querySelector('.block_city');
+      const courrierPostcodeElement = document.querySelector('.block_postalcode');
+
+      const courrierStreet = courrierStreetElement ? courrierStreetElement.textContent.trim() : '';
+      const courrierCity = courrierCityElement ? courrierCityElement.textContent.trim() : '';
+      const courrierPostcode = courrierPostcodeElement ? courrierPostcodeElement.textContent.trim() : '';
+
+      if (courrierStreet || courrierCity || courrierPostcode) {
+        results.courrier = `${courrierStreet} ${courrierCity} ${courrierPostcode}`.trim();
       }
 
       return results;
