@@ -1,6 +1,6 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer');
 const { timeouts } = require('retry');
 
 
@@ -178,10 +178,7 @@ const applyJob = async (req, res) => {
     const url = `${baseUrl}/${idjob}?source=searchresults`;
     console.log(`Navigating to: ${url}`);
 
-    browser = await puppeteer.connect({
-      headless: true,
-      browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984'
-    });
+    browser = await puppeteer.launch();
 
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(30000);
