@@ -11,6 +11,9 @@ const serviceRoute = require("./src/route/serviceRoutes.js");
 const gpsCoordinatesRoute = require("./src/route/gpsCoordinatesRoutes.js");
 const actuRoute = require("./src/route/actuRoutes.js");
 
+const puppeteer = require("puppeteer-core"); // ⚠️ Remplace "puppeteer" par "puppeteer-core"
+const chromium = require("@sparticuz/chromium");
+
 
 const resautageRoute = require("./src/route/resautageRoute.js");
 
@@ -35,14 +38,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json()); // Pour pouvoir parser les requêtes JSON
 
-// Initialisation de Firebase Admin
-// const serviceAccount = require('./chemin-vers-votre-fichier-serviceAccountKey.json');
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount)
-// });
-
-// Définition des routes
-
 // Lancer le serveur
 const PORT = process.env.PORT || 5000;
 
@@ -58,35 +53,35 @@ app.use("/api/geo", gpsCoordinatesRoute);
 app.use("/api/actu", actuRoute); 
 
 
-// app.use("/api/notifications", notificationRoute);
 
-// Nouvelle route pour les notifications
-// app.post('/api/notifications/send', async (req, res) => {
-//   try {
-//     const { token, title, body } = req.body;
-    
-//     const message = {
-//       notification: {
-//         title,
-//         body,
-//       },
-//       token: token
-//     };
+// 📸 Route pour générer une capture d’écran
+app.get("/api/screenshot", async (req, res) => {
+  try {
+    const url = "https://peterwhite.dev/posts/vercel-puppeteer-2024"; // URL par défaut
 
-//     const response = await admin.messaging().send(message);
-//     res.status(200).json({ 
-//       success: true, 
-//       message: 'Notification envoyée avec succès',
-//       response 
-//     });
-//   } catch (error) {
-//     console.error('Erreur lors de l\'envoi de la notification:', error);
-//     res.status(500).json({ 
-//       success: false, 
-//       error: 'Erreur lors de l\'envoi de la notification' 
-//     });
-//   }
-// });
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
+      headless: chromium.headless, // Utiliser le mode headless adapté
+    });
+
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: "networkidle2" });
+
+    const screenshot = await page.screenshot();
+    await browser.close();
+
+    res.setHeader("Content-Type", "image/png");
+    res.send(screenshot);
+  } catch (error) {
+    console.error("Erreur Puppeteer :", error);
+    res.status(500).json({ error: "Erreur lors de la génération de la capture d’écran" });
+  }
+});
+
+
+
+
 
 app.get("/api/*", (req, res) => {
   res.status(404).json({ error: "API route not found" });
