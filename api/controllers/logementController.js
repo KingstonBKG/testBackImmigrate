@@ -386,18 +386,49 @@ const getLogementDetails = async (req, res) => {
             }
         });
 
+        const plans = [];
+
+        $('div.Floorplan_pFloorplanFull__SIXh2 div.Floorplan_floorplansContainer__o-p9u').each((index, element) => {
+            const floorplanElement = $(element);
+            const floorplan = {};
+        
+            const titleElement = floorplanElement.find('div.Floorplan_title__2BJq9');
+            const availabilityElement = floorplanElement.find('div.Floorplan_availabilityCount__1ssf1');
+            const priceElement = floorplanElement.find('div.Floorplan_priceRange__1f4P7');
+        
+            if (titleElement.length) {
+                floorplan.title = titleElement.text().trim();
+            }
+            if (availabilityElement.length) {
+                floorplan.availabilityCount = availabilityElement.text().trim();
+            }
+            if (priceElement.length) {
+                floorplan.priceRange = priceElement.text().trim();
+            }
+        
+            // N'ajouter le plan que s'il contient au moins une information
+            if (Object.keys(floorplan).length > 0) {
+                plans.push(floorplan);
+            }
+        });
+
+        print(plans);
+        
+        // Vérifier si plans contient des données avant de l'inclure dans logementdetail
+        const logementdetail = {
+            ...logementData,
+            logementImageData,
+            ...(plans.length > 0 && { plans }),
+            amenities,
+        };
+
         const amenities = [];
         $('div.Amenities_amenityContainer__3JHoG').each((index, element) => {
             const amenitie = $(element).find('div.Amenities_text__1hUI9').text().trim();
             amenities.push(amenitie);
         });
 
-        const logementdetail = {
-            ...logementData,
-            logementImageData,
-            amenities,
-        };
-
+       
         // Envoi de la réponse avec les données extraites
         res.json([logementdetail]);
 
