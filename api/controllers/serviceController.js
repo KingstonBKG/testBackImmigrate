@@ -38,7 +38,7 @@ const getService = async (req, res) => {
             args: chromium.args,
             executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
             headless: chromium.headless, // Utiliser le mode headless adapté
-            timeout: 30000
+            timeout: 60000
           });
         
 
@@ -50,7 +50,7 @@ const getService = async (req, res) => {
         await page.goto(url, { waitUntil: 'domcontentloaded' });
 
         // Attendre que l'élément soit chargé (avec timeout pour éviter le blocage)
-        await page.waitForSelector('#textPostalCode', { timeout: 5000 });
+        await page.waitForSelector('#textPostalCode');
 
         // Remplir le formulaire
         await page.type('#textPostalCode', recherche ?? "", { delay: 50 });
@@ -132,10 +132,10 @@ const getService = async (req, res) => {
         const services = [];
 
         $('tbody tr').each((index, element) => {
-            const distance = cleanText($(element).find('td:nth-child(1)').text());
-            const title = cleanText($(element).find('td:nth-child(2) p a:nth-child(1)').text());
-            const email = cleanText($(element).find('td:nth-child(2) a:nth-child(3)').text());
-            const address = cleanText($(element).find('td:nth-child(2) a:nth-child(2)').text());
+            const distance = cleanText($(element).find('td:nth-child(1)').text() ?? 'distance non disponible');
+            const title = cleanText($(element).find('td:nth-child(2) p a:nth-child(1)').text() ?? 'titre non disponible');
+            const email = cleanText($(element).find('td:nth-child(2) a:nth-child(3)').text() ?? 'email non disponible');
+            const address = cleanText($(element).find('td:nth-child(2) a:nth-child(2)').text() ?? 'adresse non disponible');
             const link = $(element).find('td:nth-child(2) p a').attr('href');
         
             let phone = '';
