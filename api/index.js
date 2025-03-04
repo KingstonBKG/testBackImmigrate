@@ -15,7 +15,7 @@ const puppeteer = require("puppeteer-core"); // ⚠️ Remplace "puppeteer" par 
 const chromium = require("@sparticuz/chromium");
 
 
-const resautageRoute = require("./src/route/resautageRoute.js");
+const resautageRoute = require("../src/route/resautageRoute.js");
 
 const app = express();
 require("dotenv").config();
