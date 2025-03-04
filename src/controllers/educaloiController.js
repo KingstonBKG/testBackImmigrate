@@ -1,29 +1,17 @@
-// const puppeteer = require("puppeteer");
-const puppeteer = require('puppeteer-core');
+const puppeteer = require("puppeteer-core"); // ⚠️ Remplace "puppeteer" par "puppeteer-core"
+const chromium = require("@sparticuz/chromium");
+
 
 
 const getAidesJudiciaires = async (req, res) => {
   const url = "https://educaloi.qc.ca/nos-dossiers/";
 
   try {
-    // Configuration du navigateur
-    // const browser = await puppeteer.launch({
-    //   headless: true,
-    //   args: [
-    //     "--no-sandbox",
-    //     "--disable-setuid-sandbox",
-    //     "--disable-blink-features=AutomationControlled",
-    //   ],
-    // });
 
-    const browser = await puppeteer.connect({
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-blink-features=AutomationControlled",
-      ],
-      browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984' // Remplace par ta clé API Browserless
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
+      headless: chromium.headless, // Utiliser le mode headless adapté
     });
 
     // Création d'une nouvelle page

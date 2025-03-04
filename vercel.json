@@ -9,6 +9,9 @@
   "functions": {
     "api/index.js": {
       "maxDuration": 30
+    },
+    "src/controllers/educaloiController.js": {
+      "maxDuration": 30
     }
   }
 }
