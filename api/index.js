@@ -1,15 +1,15 @@
 const express = require("express");
 const cors = require("cors");
 const admin = require('firebase-admin');
-const jobRoute = require("./src/route/Jobroute");
-const LogementRoute = require("./src/route/LogementRoute");
-const santeRoute = require("./src/route/santeRoute");
-const searchRoute = require("./src/route/searchRoute");
-const educationRoute = require("./src/route/educationRoute");
-const educaloiRoute = require("./src/route/educaloiRoutes.js");
-const serviceRoute = require("./src/route/serviceRoutes.js");
-const gpsCoordinatesRoute = require("./src/route/gpsCoordinatesRoutes.js");
-const actuRoute = require("./src/route/actuRoutes.js");
+const jobRoute = require("../src/route/Jobroute");
+const LogementRoute = require("../src/route/LogementRoute");
+const santeRoute = require("../src/route/santeRoute");
+const searchRoute = require("../src/route/searchRoute");
+const educationRoute = require("../src/route/educationRoute");
+const educaloiRoute = require("../src/route/educaloiRoutes.js");
+const serviceRoute = require("../src/route/serviceRoutes.js");
+const gpsCoordinatesRoute = require("../src/route/gpsCoordinatesRoutes.js");
+const actuRoute = require("../src/route/actuRoutes.js");
 
 const puppeteer = require("puppeteer-core"); // ⚠️ Remplace "puppeteer" par "puppeteer-core"
 const chromium = require("@sparticuz/chromium");

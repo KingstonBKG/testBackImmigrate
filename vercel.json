@@ -1,16 +1,22 @@
 {
-    "version": 2,
+  "version": 2,
 
-    "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "/server.js"
-      }
-    ],
-    "functions": {
-      "server.js": {
-        "maxDuration": 30
-      }
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
+    }
+  ],
+  "functions": {
+    "server.js": {
+      "maxDuration": 30
+    },
+    "api/**/*.js": {
+      "maxDuration": 30
     }
   }
-  
+}
