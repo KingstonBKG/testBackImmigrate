@@ -21,12 +21,12 @@ const getJob = async (req, res) => {
     });
 
     const page = await browser.newPage();
-    page.setDefaultNavigationTimeout(30000);
-    page.setDefaultTimeout(30000);
+    page.setDefaultNavigationTimeout(60000);
+    page.setDefaultTimeout(60000);
 
     await page.goto(url, { 
       waitUntil: 'networkidle0',
-      timeout: 30000 
+      timeout: 60000 
     });
 
     // Attendre que les articles soient chargés
@@ -91,12 +91,12 @@ const getJobdetails = async (req, res) => {
     });
 
     const page = await browser.newPage();
-    page.setDefaultNavigationTimeout(30000);
-    page.setDefaultTimeout(30000);
+    page.setDefaultNavigationTimeout(60000);
+    page.setDefaultTimeout(60000);
 
     await page.goto(url, { 
       waitUntil: 'networkidle0',
-      timeout: 30000 
+      timeout: 60000 
     });
 
     const jobDetails = await page.evaluate(() => {
