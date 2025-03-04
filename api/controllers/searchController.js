@@ -1,8 +1,11 @@
-const puppeteer = require('puppeteer-core');
+const puppeteer = require("puppeteer-core"); // ⚠️ Remplace "puppeteer" par "puppeteer-core"
+const chromium = require("@sparticuz/chromium");
 
 async function getSuggestions(text) {
-    const browser = await puppeteer.connect({
-        browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984' // Remplace par ta clé API Browserless
+    const browser = await puppeteer.launch({
+        args: chromium.args,
+        executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
+        headless: chromium.headless, // Utiliser le mode headless adapté
     });
 
     const page = await browser.newPage();

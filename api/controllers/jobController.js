@@ -1,7 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-const puppeteer = require('puppeteer-core');
-const { timeouts } = require('retry');
+const puppeteer = require("puppeteer-core"); // ⚠️ Remplace "puppeteer" par "puppeteer-core"
+const chromium = require("@sparticuz/chromium");
 
 
 // Méthode pour récupérer les jobs
@@ -170,7 +170,7 @@ const getJobdetails = async (req, res) => {
 
 // Méthode pour récupérer les jobs
 const applyJob = async (req, res) => {
-  const idjob = req.params.idjob; 
+  const idjob = req.params.idjob;
   let browser;
 
   try {
@@ -178,11 +178,12 @@ const applyJob = async (req, res) => {
     const url = `${baseUrl}/${idjob}?source=searchresults`;
     console.log(`Navigating to: ${url}`);
 
-    const browser = await puppeteer.connect({
-        headless: false,
-        browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984' // Remplace par ta clé API Browserless
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
+      headless: chromium.headless, // Utiliser le mode headless adapté
     });
-    
+
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(30000);
     page.setDefaultTimeout(30000);
@@ -199,7 +200,7 @@ const applyJob = async (req, res) => {
     // Récupérer toutes les informations de postulation
     const applicationInfo = await page.evaluate(() => {
       const results = {};
-      
+
       // // Vérifier le bouton de redirection
       // const submitButton = document.querySelector('input[type="submit"]');
       // if (submitButton) {
@@ -219,7 +220,7 @@ const applyJob = async (req, res) => {
       }
 
       // Vérifier le texte de postulation
-      
+
       // Vérifier les informations de courrier
       const courrierStreetElement = document.querySelector('.block_street');
       const courrierCityElement = document.querySelector('.block_city');
@@ -245,9 +246,9 @@ const applyJob = async (req, res) => {
     if (browser) {
       await browser.close();
     }
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Error while fetching application information',
-      details: error.message 
+      details: error.message
     });
   }
 };

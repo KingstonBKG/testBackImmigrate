@@ -1,9 +1,10 @@
 // Contrôleur pour récupérer les coordonnées GPS d'une ville
-const puppeteer = require('puppeteer-core');
+const puppeteer = require("puppeteer-core"); // ⚠️ Remplace "puppeteer" par "puppeteer-core"
+const chromium = require("@sparticuz/chromium");
 
 const getCoordinatesFromCity = async (req, res) => {
   const { city } = req.query;
-  
+
   if (!city) {
     return res.status(400).json({
       success: false,
@@ -13,14 +14,10 @@ const getCoordinatesFromCity = async (req, res) => {
 
   try {
     // Connexion à browserless.io pour l'exécution du navigateur
-    const browser = await puppeteer.connect({
-      browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984',
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-blink-features=AutomationControlled",
-      ],
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
+      headless: chromium.headless, // Utiliser le mode headless adapté
     });
 
     // Création d'une nouvelle page
@@ -35,7 +32,7 @@ const getCoordinatesFromCity = async (req, res) => {
     });
 
     // Navigation vers l'URL du convertisseur de coordonnées GPS
-    await page.goto("https://www.coordonnees-gps.fr/conversion-coordonnees-gps", { 
+    await page.goto("https://www.coordonnees-gps.fr/conversion-coordonnees-gps", {
       waitUntil: "networkidle2",
       timeout: 60000
     });
@@ -43,7 +40,7 @@ const getCoordinatesFromCity = async (req, res) => {
     // Saisie de la ville dans le champ d'adresse
     await page.waitForSelector('#address');
     await page.type('#address', city);
-    
+
     // Clic sur le bouton pour obtenir les coordonnées GPS
     await page.click('button.btn.btn-primary[onclick="codeAddress()"]');
 
@@ -57,21 +54,21 @@ const getCoordinatesFromCity = async (req, res) => {
     const coordinates = await page.evaluate(() => {
       const latitude = document.querySelector('#latitude').value;
       const longitude = document.querySelector('#longitude').value;
-      
+
       // Récupération des coordonnées sexagésimales (degrés, minutes, secondes)
       const latDegrees = document.querySelector('#latitude_degres').value;
       const latMinutes = document.querySelector('#latitude_minutes').value;
       const latSeconds = document.querySelector('#latitude_secondes').value;
       const latDirection = document.querySelector('#nord').checked ? 'N' : 'S';
-      
+
       const longDegrees = document.querySelector('#longitude_degres').value;
       const longMinutes = document.querySelector('#longitude_minutes').value;
       const longSeconds = document.querySelector('#longitude_secondes').value;
       const longDirection = document.querySelector('#est').checked ? 'E' : 'O';
-      
+
       // Format what3words si disponible
       const w3w = document.querySelector('#w3w').value;
-      
+
       return {
         decimal: {
           latitude: parseFloat(latitude),

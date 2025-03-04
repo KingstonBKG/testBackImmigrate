@@ -1,10 +1,5 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
-const puppeteer = require('puppeteer');
-
-const cleanText = (text) => text.trim().replace(/\s+/g, " ");
-
-
 
 const getServices = async (req, res) => {
   const options = req.params.options

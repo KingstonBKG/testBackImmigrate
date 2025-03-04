@@ -1,26 +1,21 @@
-const puppeteer = require("puppeteer-core");
-
-const cleanText = (text) => text.trim().replace(/\s+/g, " ");
+const puppeteer = require("puppeteer-core"); // ⚠️ Remplace "puppeteer" par "puppeteer-core"
+const chromium = require("@sparticuz/chromium");
 
 const getResautage = async (req, res) => {
-    const url = "http://mentoratquebec.org/programmes-de-mentorat/";    
+    const url = "http://mentoratquebec.org/programmes-de-mentorat/";
     try {
-        const browser = await puppeteer.connect({
-            headless: true,
-            args: [
-              "--no-sandbox",
-              "--disable-setuid-sandbox",
-              "--disable-blink-features=AutomationControlled",
-            ],
-            browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984' // Remplace par ta clé API Browserless
-          });
-    const page = await browser.newPage();
-    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-    await page.setExtraHTTPHeaders({
-        'Accept-Language': 'fr-FR,fr;q=0.9'
-    });
-    
-    await page.goto(url, { waitUntil: 'networkidle2' });
+        const browser = await puppeteer.launch({
+            args: chromium.args,
+            executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
+            headless: chromium.headless, // Utiliser le mode headless adapté
+        });
+        const page = await browser.newPage();
+        await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+        await page.setExtraHTTPHeaders({
+            'Accept-Language': 'fr-FR,fr;q=0.9'
+        });
+
+        await page.goto(url, { waitUntil: 'networkidle2' });
 
         const result = await page.evaluate(() => {
             const cleanText = (text) => text.trim().replace(/\s+/g, " ");

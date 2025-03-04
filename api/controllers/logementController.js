@@ -1,6 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-const puppeteer = require('puppeteer-core');
+const puppeteer = require("puppeteer-core"); // ⚠️ Remplace "puppeteer" par "puppeteer-core"
+const chromium = require("@sparticuz/chromium");
 
 
 
@@ -306,9 +307,10 @@ const getLogementDetails = async (req, res) => {
     const url = `${link}`;
     const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
 
-    const browser = await puppeteer.connect({
-        headless: false,
-        browserWSEndpoint: 'wss://chrome.browserless.io?token=RlBL97PMa0pmz92ac02a0f78979584fc2a3401f984' // Remplace par ta clé API Browserless
+    const browser = await puppeteer.launch({
+        args: chromium.args,
+        executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
+        headless: chromium.headless, // Utiliser le mode headless adapté
     });
 
     const page = await browser.newPage();
