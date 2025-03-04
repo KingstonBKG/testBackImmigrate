@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const serviceController = require('../controllers/serviceController');
+const serviceController = require('../../api/controllers/serviceController');
 const verifyApiKey = require('../config/verifyApiKey');
 
 router.use(verifyApiKey);

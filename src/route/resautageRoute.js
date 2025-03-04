@@ -1,6 +1,6 @@
 const express=require('express');
 const router=express.Router();
-const resautageController = require('../controllers/resautageController.js');
+const resautageController = require('../../api/controllers/resautageController.js');
 
 const verifyKey=require('../config/verifyApiKey.js')
 

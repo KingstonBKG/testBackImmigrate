@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const gpsCoordinatesController = require("../controllers/gpsCoordinatesController.js");
+const gpsCoordinatesController = require("../../api/controllers/gpsCoordinatesController.js");
 const verifyKey = require("../config/verifyApiKey.js");
 
 // Middleware pour vérifier la clé API
