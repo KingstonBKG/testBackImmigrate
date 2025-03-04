@@ -1,5 +1,4 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
+
 const puppeteer = require("puppeteer-core"); // ⚠️ Remplace "puppeteer" par "puppeteer-core"
 const chromium = require("@sparticuz/chromium");
 
@@ -7,6 +6,13 @@ const chromium = require("@sparticuz/chromium");
 // Méthode pour récupérer les jobs
 const getJob = async (req, res) => {
   let browser;
+
+  browser = await puppeteer.launch({
+    args: chromium.args,
+    executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
+    headless: chromium.headless, // Utiliser le mode headless adapté
+  });
+  
   try {
     const searchstring = req.query.searchstring || '';
     const locationstring = req.query.locationstring || '';
@@ -14,11 +20,7 @@ const getJob = async (req, res) => {
 
     const url = `https://www.guichetemplois.gc.ca/jobsearch/rechercheemplois?searchstring=${encodeURIComponent(searchstring)}&locationstring=${encodeURIComponent(locationstring)}&locationparam=&fper=${encodeURIComponent(fper)}`;
 
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
-      headless: chromium.headless, // Utiliser le mode headless adapté
-    });
+    
 
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(60000);
