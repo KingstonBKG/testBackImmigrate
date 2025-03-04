@@ -10,7 +10,7 @@
     "api/index.js": {
       "maxDuration": 30
     },
-    "src/controllers/educaloiController.js": {
+    "src/controllers/**/*.js": {
       "maxDuration": 30
     }
   }
