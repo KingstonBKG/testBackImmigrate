@@ -301,107 +301,116 @@ const geLogementwithfilter = async (req, res) => {
 };
 
 const getLogementDetails = async (req, res) => {
-    let browser;
+    const link = decodeURIComponent(req.params[0]);
+    console.log("Lien reçu :", link);
+
+    const url = `${link}`;
+    const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
+
+    const browser = await puppeteer.launch({
+        args: chromium.args,
+        executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
+        headless: chromium.headless, // Utiliser le mode headless adapté
+    });
+
+    const page = await browser.newPage();
+
     try {
-        const link = decodeURIComponent(req.params[0]);
-        console.log("Lien reçu :", link);
-
-        const url = `${link}`;
-        const cleanText = (text) => text?.replace(/\s+/g, ' ').trim() || '';
-
-        browser = await puppeteer.launch({
-            args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
-            defaultViewport: chromium.defaultViewport,
-            executablePath: await chromium.executablePath(),
-            headless: chromium.headless,
-            ignoreHTTPSErrors: true
-        });
-
-        const page = await browser.newPage();
-        page.setDefaultNavigationTimeout(30000);
-        page.setDefaultTimeout(30000);
-
-        await page.goto(url, { 
-            waitUntil: 'networkidle0',
-            timeout: 30000 
-        });
-
-        // Attendre que les éléments nécessaires soient chargés
-        await page.waitForSelector('.MediaItem_MediaItem__2qqHp');
+        page.setDefaultTimeout(50000);
+        await page.goto(url);
         
-        // Extraire les données de la page
-        const logementDetails = await page.evaluate(() => {
-            const cleanText = text => text?.replace(/\s+/g, ' ').trim() || '';
-            
-            // Fonction helper pour extraire le texte
-            const getText = (selector) => {
-                const element = document.querySelector(selector);
-                return element ? cleanText(element.textContent) : '';
-            };
+        // Attendre que l'élément à cliquer soit visible et cliquer dessus
+        await page.waitForSelector('.MediaItem_MediaItem__2qqHp');
+        await page.click('.MediaItem_MediaItem__2qqHp');
+        
+        // Attendre un peu que la page soit mise à jour (vous pouvez ajuster selon le cas)
+        await page.waitForSelector('.Image_imageTag__1q2pE');
 
-            // Extraire les images
-            const imgElements = Array.from(document.querySelectorAll('.Image_imageTag__1q2pE'));
-            const logementImageData = imgElements.map(img => {
-                const srcSet = img.getAttribute('srcset');
-                if (srcSet) {
-                    const imageUrls = srcSet.split(',').map(item => item.trim().split(' ')[0]);
-                    const cleanedImageUrls = imageUrls.map(url => url.split('?')[0]);
-                    return { image: cleanedImageUrls[cleanedImageUrls.length - 1] };
-                }
-                return null;
-            }).filter(Boolean);
+        // Récupérer le nouveau contenu HTML de la page
+        const pageContent = await page.content(); // Récupère le HTML complet de la page mise à jour
+        
+        // Utiliser Cheerio pour analyser le HTML récupéré
+        const $ = cheerio.load(pageContent);
 
-            // Extraire les données principales
-            const logementData = {
-                title: getText('h1.FullDetail_street__16nT6'),
-                phone: getText('a.FullDetail_phoneNumber__2L7_k'),
-                description: getText('div.Description_text__hK1dE')
-            };
+        const imgElements = $('.Image_imageTag__1q2pE');
+        console.log(imgElements.length);
 
-            // Extraire les plans
-            const floorplans = Array.from(document.querySelectorAll('div.Floorplan_pFloorplanFull__SIXh2 div.Floorplan_floorplansContainer__o-p9u'))
-                .map(element => {
-                    const plan = {};
-                    const title = element.querySelector('div.Floorplan_title__2BJq9');
-                    const availability = element.querySelector('div.Floorplan_availabilityCount__1ssf1');
-                    const price = element.querySelector('div.Floorplan_priceRange__1f4P7');
+        let logementImageData = [];
 
-                    if (title) plan.title = cleanText(title.textContent);
-                    if (availability) plan.availabilityCount = cleanText(availability.textContent);
-                    if (price) plan.priceRange = cleanText(price.textContent);
+        imgElements.each((index, element) => {
+            const srcSet = $(element).attr('srcset');
 
-                    return Object.keys(plan).length ? plan : null;
-                }).filter(Boolean);
+            if (srcSet) {
+                // Découper les différentes URLs en fonction des virgules
+                const imageUrls = srcSet.split(',').map(item => item.trim().split(' ')[0]);
 
-            // Extraire les amenities
-            const amenities = Array.from(document.querySelectorAll('div.Amenities_amenityContainer__3JHoG div.Amenities_text__1hUI9'))
-                .map(element => cleanText(element.textContent))
-                .filter(Boolean);
+                // Pour chaque URL, retirer la query string et garder la partie avant le "?"
+                const cleanedImageUrls = imageUrls.map(url => url.split('?')[0]);
 
-            return {
-                logementData,
-                logementImageData,
-                ...(floorplans.length && { plans: floorplans }),
-                ...(amenities.length && { amenities })
-            };
+                // Prendre la dernière URL nettoyée
+                logementImageData.push({
+                    image: cleanedImageUrls[cleanedImageUrls.length - 1]
+                });
+            }
         });
 
-        res.json([logementDetails]);
+        // Récupérer d'autres données
+        let logementData = {};
 
-    } catch (error) {
-        console.error('Erreur lors du scraping:', error);
-        res.status(500).json({ 
-            error: 'Erreur lors du scraping',
-            message: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        logementData.title = cleanText($('h1.FullDetail_street__16nT6').text().trim());
+        logementData.phone = cleanText($('a.FullDetail_phoneNumber__2L7_k').text().trim());
+        logementData.description = cleanText($('div.Description_text__hK1dE').text().trim());
+        logementData.link = link;
+
+        $('div.SummaryTable_summaryTable__1gSYh ul li').each((index, element) => {
+            const text = $(element).text().trim();
+
+            if (text.includes("Price")) {
+                logementData.price = text.replace("Price", "").trim();
+            } else if (text.includes("Bedrooms")) {
+                logementData.bedrooms = text.replace("Bedrooms", "").trim();
+            } else if (text.includes("Bathrooms")) {
+                logementData.Bathrooms = text.replace("Bathrooms", "").trim();
+            } else if (text.includes("Available")) {
+                logementData.Available = text.replace("Available", "").trim();
+            } else if (text.includes("Square Feet")) {
+                logementData.surface = text.replace("Square Feet", "").trim();
+            } else if (text.includes("Min. Lease")) {
+                logementData.minlease = text.replace("Min. Lease", "").trim();
+            } else if (text.includes("Address")) {
+                logementData.Address = text.replace("Address", "").trim();
+            } else if (text.includes("Broker Fee?")) {
+                logementData.brokerfee = text.replace("Broker Fee?", "").trim();
+            } else if (text.includes("Cats/Dogs Allowed?")) {
+                logementData.pets = text.replace("Cats/Dogs Allowed?", "").trim();
+            }
         });
+
+        const amenities = [];
+        $('div.Amenities_amenityContainer__3JHoG').each((index, element) => {
+            const amenitie = $(element).find('div.Amenities_text__1hUI9').text().trim();
+            amenities.push(amenitie);
+        });
+
+        const logementdetail = {
+            ...logementData,
+            logementImageData,
+            amenities,
+        };
+
+        // Envoi de la réponse avec les données extraites
+        res.json([logementdetail]);
+
+    } catch (e) {
+        console.error('Erreur :', e.message);
+        res.status(500).json({ error: "Une erreur est survenue lors du scraping." });
     } finally {
-        if (browser) {
-            await browser.close();
-            console.log('Browser fermé');
-        }
+        // Fermer le navigateur
+        console.log('fermeture du browser');
+        await browser.close();
     }
 };
+
 
 
 
