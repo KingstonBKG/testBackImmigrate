@@ -30,14 +30,8 @@ const getJob = async (req, res) => {
       waitUntil: 'networkidle0',
       timeout: 60000
     });
-
-    await page.waitForSelector('article.action-buttons');
-
-
-    await page.click('#moreresultbutton');
     await page.waitForSelector('#moreresultbutton');
-    await page.click('#moreresultbutton');
-    await page.waitForSelector('#moreresultbutton');
+
     await page.click('#moreresultbutton');
 
     // Attendre que les articles soient chargés
