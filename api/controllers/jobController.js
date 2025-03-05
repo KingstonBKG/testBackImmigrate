@@ -12,7 +12,7 @@ const getJob = async (req, res) => {
     executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
     headless: chromium.headless, // Utiliser le mode headless adapté
   });
-  
+
   try {
     const searchstring = req.query.searchstring || '';
     const locationstring = req.query.locationstring || '';
@@ -20,15 +20,15 @@ const getJob = async (req, res) => {
 
     const url = `https://www.guichetemplois.gc.ca/jobsearch/rechercheemplois?searchstring=${encodeURIComponent(searchstring)}&locationstring=${encodeURIComponent(locationstring)}&locationparam=&fper=${encodeURIComponent(fper)}`;
 
-    
+
 
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(60000);
     page.setDefaultTimeout(60000);
 
-    await page.goto(url, { 
+    await page.goto(url, {
       waitUntil: 'networkidle0',
-      timeout: 60000 
+      timeout: 60000
     });
 
     // Attendre que les articles soient chargés
@@ -65,9 +65,9 @@ const getJob = async (req, res) => {
   } catch (error) {
     console.error('Erreur lors du scraping:', error);
     if (browser) await browser.close();
-    
+
     // Retourner une réponse plus détaillée
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Erreur lors du scraping',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -96,9 +96,9 @@ const getJobdetails = async (req, res) => {
     page.setDefaultNavigationTimeout(60000);
     page.setDefaultTimeout(60000);
 
-    await page.goto(url, { 
+    await page.goto(url, {
       waitUntil: 'networkidle0',
-      timeout: 60000 
+      timeout: 60000
     });
 
     const jobDetails = await page.evaluate(() => {
@@ -146,7 +146,7 @@ const getJobdetails = async (req, res) => {
   } catch (error) {
     console.error('Erreur lors du scraping:', error);
     if (browser) await browser.close();
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Erreur lors du scraping',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -239,12 +239,58 @@ const applyJob = async (req, res) => {
   }
 };
 
+async function locate(text) {
+
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
+    headless: chromium.headless, // Utiliser le mode headless adapté
+  });
+
+  const page = await browser.newPage();
+
+  try {
+    page.setDefaultNavigationTimeout(60000);
+    page.setDefaultTimeout(60000);
+    await page.goto("https://www.guichetemplois.gc.ca/accueil", { waitUntil: "networkidle0" });
+    await page.waitForSelector("#locationstring");
+    const input = await page.$('#locationstring');
+
+    if (!input) {
+      console.error("Champ de recherche introuvable.");
+      return [];
+    }
+
+    await input.type(text, { delay: 50 });
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    await page.waitForFunction(() => {
+      return document.querySelectorAll(".tt-suggestion").length > 0;
+    }, { timeout: 10000 }).catch(() => {
+      console.log("Aucune suggestion trouvée.");
+    });
+
+
+    const suggestions = await page.evaluate(() => {
+      return Array.from(document.querySelectorAll(".tt-suggestion")).map(el => el.innerText);
+    });
+
+    return suggestions;
+  } catch (e) {
+    console.error("Erreur lors du scraping :", e.message);
+    return [];
+  } finally {
+    await browser.close();
+  }
+}
+
 
 
 module.exports = {
   getJob,
   getJobdetails,
-  applyJob
+  applyJob,
+  locate
 };
 
 
