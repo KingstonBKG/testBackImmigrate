@@ -392,10 +392,21 @@ const getLogementDetails = async (req, res) => {
             amenities.push(amenitie);
         });
 
+
+        const plans = [];
+        $('div.Floorplan_floorplansContainer__o-p9u').each((index, element) => {
+            const title = $(element).find('div.Floorplan_title__2BJq9').text().trim();
+            const availabilityCount = $(element).find('div.Floorplan_availabilityCount__1ssf1').text().trim();
+            const price = $(element).find('div.Floorplan_priceRange__1f4P7 span').text().trim();
+
+            plans.push(title, availabilityCount, price);
+        });
+
         const logementdetail = {
             ...logementData,
             logementImageData,
             amenities,
+            ...(plans.length !== 0 && { plans })
         };
 
         // Envoi de la réponse avec les données extraites
