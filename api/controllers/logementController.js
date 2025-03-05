@@ -358,7 +358,7 @@ const getLogementDetails = async (req, res) => {
         let logementData = {};
 
         logementData.title = cleanText($('h1.FullDetail_street__16nT6').text().trim());
-        logementData.phone = cleanText($('a.FullDetail_phoneNumber__2L7_k').text().trim() ?? $('.AgentInfo_agent__2fglF a').text().trim());
+        logementData.phone = cleanText($('a.FullDetail_phoneNumber__2L7_k').text().trim());
         logementData.description = cleanText($('div.Description_text__hK1dE').text().trim());
         logementData.link = link;
 
