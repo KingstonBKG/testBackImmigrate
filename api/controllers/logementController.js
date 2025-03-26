@@ -302,12 +302,12 @@ const getLogementDetails = async (req, res) => {
     console.log("Lien reçu :", link);
 
     const url = `${link}`;
-    const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
+    const cleanText = (text) => text?.replace(/\s+/g, ' ').trim() || '';
 
     const browser = await puppeteer.launch({
         args: chromium.args,
         executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
-        headless: chromium.headless, // Utiliser le mode headless adapté
+        headless: chromium.headless,
     });
 
     const page = await browser.newPage();
@@ -319,36 +319,30 @@ const getLogementDetails = async (req, res) => {
         // Attendre que l'élément à cliquer soit visible et cliquer dessus
         await page.waitForSelector('.MediaItem_MediaItem__diph2');
         await page.click('.MediaItem_MediaItem__diph2');
-        
-        // Attendre un peu que la page soit mise à jour (vous pouvez ajuster selon le cas)
-        // await page.waitForSelector('.Image_imageTag__1q2pE');
 
-        // Récupérer le nouveau contenu HTML de la page
-        const pageContent = await page.content(); // Récupère le HTML complet de la page mise à jour
+        // Attendre que toutes les images soient chargées
+        await page.waitForSelector('.Image_imageTag__glEse');
         
-        // Utiliser Cheerio pour analyser le HTML récupéré
+        // Récupérer toutes les images et leurs données avant le pageContent
+        const images = await page.evaluate(() => {
+            const imgElements = document.querySelectorAll('.Image_imageTag__glEse');
+            return Array.from(imgElements, img => {
+                const srcSet = img.getAttribute('srcset');
+                if (srcSet) {
+                    const imageUrls = srcSet.split(',')
+                        .map(item => item.trim().split(' ')[0])
+                        .map(url => url.split('?')[0]);
+                    return { image: imageUrls[imageUrls.length - 1] };
+                }
+                return null;
+            }).filter(Boolean);
+        });
+        
+        const pageContent = await page.content();
         const $ = cheerio.load(pageContent);
 
-        const imgElements = $('.Image_imageTag__glEse');
-        
-        let logementImageData = [];
-
-        imgElements.each((index, element) => {
-            const srcSet = $(element).attr('srcset');
-
-            if (srcSet) {
-                // Découper les différentes URLs en fonction des virgules
-                const imageUrls = srcSet.split(',').map(item => item.trim().split(' ')[0]);
-  
-                // Pour chaque URL, retirer la query string et garder la partie avant le "?"
-                const cleanedImageUrls = imageUrls.map(url => url.split('?')[0]);
-
-                // Prendre la dernière URL nettoyée
-                logementImageData.push({
-                    image: cleanedImageUrls[cleanedImageUrls.length - 1]
-                });
-            }
-        });
+        // Utiliser directement les images récupérées
+        const logementImageData = images;
 
         // Récupérer d'autres données
         let logementData = {};
