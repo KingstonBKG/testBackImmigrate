@@ -1,72 +1,79 @@
-const puppeteer = require("puppeteer-core"); // ⚠️ Remplace "puppeteer" par "puppeteer-core"
-const chromium = require("@sparticuz/chromium");
-
+const puppeteer = require("puppeteer");
 
 // Cache avec expiration
 const searchCache = new Map();
 const CACHE_DURATION = 1000 * 60 * 60; // 1 heure
 
 async function getSuggestions(text) {
-
     // Vérifier le cache
     const cacheKey = text.toLowerCase();
     const cached = searchCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        return { suggestions: cached.suggestions, fromCache: true };
+        return cached.suggestions; // Retourne directement le tableau de suggestions
     }
 
-    const browser = await puppeteer.launch({
-        args: chromium.args,
-        executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
-        headless: chromium.headless, // Utiliser le mode headless adapté
-    });
-
-    const page = await browser.newPage();
-
-    await page.setRequestInterception(true);
-    page.on('request', request => {
-        if (['image', 'stylesheet', 'font'].includes(request.resourceType())) {
-            request.abort();
-        } else {
-            request.continue();
-        }
-    });
-
+    let browser;
     try {
-        await page.goto("https://www.padmapper.com/");
-        const input = await page.$('input[type="search"]');
-
-        if (!input) {
-            console.error("Champ de recherche introuvable.");
-            return [];
-        }
-
-        await input.type(text);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        await page.waitForFunction(() => {
-            return document.querySelectorAll(".Autocomplete_primaryText__16RA_").length > 0;
-        }, { timeout: 5000 }).catch(() => {
-            console.log("Aucune suggestion trouvée.");
+        browser = await puppeteer.launch({
+            headless: "new",
+            args: ['--no-sandbox'],
+            defaultViewport: { width: 1024, height: 768 }
         });
 
-        const suggestions = await page.evaluate(() => {
-            return Array.from(document.querySelectorAll(".Autocomplete_primaryText__16RA_")).map(el => el.innerText);
+        const page = await browser.newPage();
+        
+        // Optimiser le chargement
+        await page.setRequestInterception(true);
+        page.on('request', request => {
+            if (['image', 'stylesheet', 'font'].includes(request.resourceType())) {
+                request.abort();
+            } else {
+                request.continue();
+            }
         });
 
-                // Mettre en cache
-                searchCache.set(cacheKey, {
-                    suggestions,
-                    timestamp: Date.now()
-                });
+        await page.goto("https://www.padmapper.com/", {
+            waitUntil: 'domcontentloaded',
+            timeout: 10000
+        });
 
-        return suggestions;
-    } catch (e) {
-        console.error("Erreur lors du scraping :", e.message);
-        return {suggestions: cached?.suggestions || []};
+        const suggestions = await page.evaluate(async (searchText) => {
+            const input = document.querySelector('input[type="search"]');
+            if (!input) return [];
+
+            input.value = searchText;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            const elements = document.querySelectorAll(".Autocomplete_primaryText__16RA_");
+            return Array.from(elements, el => el.innerText);
+        }, text);
+
+        // Mettre en cache seulement le tableau de suggestions
+        searchCache.set(cacheKey, {
+            suggestions,
+            timestamp: Date.now()
+        });
+
+        return suggestions; // Retourne directement le tableau de suggestions
+
+    } catch (error) {
+        console.error("Erreur lors de la recherche :", error);
+        return cached?.suggestions || []; // Retourne le cache ou tableau vide en cas d'erreur
     } finally {
-        await browser.close();
+        if (browser) await browser.close();
     }
 }
+
+// Nettoyage périodique du cache
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, value] of searchCache.entries()) {
+        if (now - value.timestamp > CACHE_DURATION) {
+            searchCache.delete(key);
+        }
+    }
+}, CACHE_DURATION);
 
 module.exports = { getSuggestions };
