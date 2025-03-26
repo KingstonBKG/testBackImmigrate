@@ -222,9 +222,6 @@ const geLogementwithfilter = async (req, res) => {
     const pathParts = [type, city, ftype].filter(Boolean); // Supprime les undefined
     const url = `${baseUrl}/${pathParts.map(encodeURIComponent).join('/')}`;
 
-    // URL de la page à scraper
-    // const url = `https://www.padmapper.com/${encodeURIComponent(type)}/${encodeURIComponent(city)}/${encodeURIComponent(ftype)}`;
-    console.log(url);
     // Fonction pour nettoyer les données extraites
     const cleanText = (text) => text.replace(/\s+/g, ' ').trim();
 
@@ -320,11 +317,11 @@ const getLogementDetails = async (req, res) => {
         await page.goto(url);
         
         // Attendre que l'élément à cliquer soit visible et cliquer dessus
-        await page.waitForSelector('.MediaItem_MediaItem__2qqHp');
-        await page.click('.MediaItem_MediaItem__2qqHp');
+        await page.waitForSelector('.MediaItem_MediaItem__diph2');
+        await page.click('.MediaItem_MediaItem__diph2');
         
         // Attendre un peu que la page soit mise à jour (vous pouvez ajuster selon le cas)
-        await page.waitForSelector('.Image_imageTag__1q2pE');
+        // await page.waitForSelector('.Image_imageTag__1q2pE');
 
         // Récupérer le nouveau contenu HTML de la page
         const pageContent = await page.content(); // Récupère le HTML complet de la page mise à jour
@@ -332,9 +329,8 @@ const getLogementDetails = async (req, res) => {
         // Utiliser Cheerio pour analyser le HTML récupéré
         const $ = cheerio.load(pageContent);
 
-        const imgElements = $('.Image_imageTag__1q2pE');
-        console.log(imgElements.length);
-
+        const imgElements = $('.Image_imageTag__glEse');
+        
         let logementImageData = [];
 
         imgElements.each((index, element) => {

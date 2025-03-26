@@ -9,5 +9,5 @@ router.use(verifyApiKey);
 router.get('/getlogement/:type/:city/:bed?/:price?/:pet?', logementController.getLogement);
 router.get('/getlogementwithtype/:type?/:city?/:ftype?',  logementController.geLogementwithtype);
 router.get('/getlogementdetails/*',  logementController.getLogementDetails);
-  
+   
 module.exports = router;

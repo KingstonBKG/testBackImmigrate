@@ -12,7 +12,7 @@ async function getSuggestions(text) {
     const cacheKey = text.toLowerCase();
     const cached = searchCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        return { suggestions: cached.suggestions, fromCache: true };
+        return cached.suggestions;
     }
 
     const browser = await puppeteer.launch({
