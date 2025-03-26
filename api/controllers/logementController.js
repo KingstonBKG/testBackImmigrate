@@ -343,7 +343,7 @@ const getLogementDetails = async (req, res) => {
             if (srcSet) {
                 // Découper les différentes URLs en fonction des virgules
                 const imageUrls = srcSet.split(',').map(item => item.trim().split(' ')[0]);
-
+  
                 // Pour chaque URL, retirer la query string et garder la partie avant le "?"
                 const cleanedImageUrls = imageUrls.map(url => url.split('?')[0]);
 
