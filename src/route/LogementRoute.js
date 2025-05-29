@@ -1,46 +1,10 @@
-<<<<<<< HEAD
 const express = require('express');
 const router = express.Router();
-const logementController = require('../../api/controllers/logementController');
+const AppartogoScraper  = require('../../api/controllers/logementController');
 const verifyApiKey = require('../config/verifyApiKey');
-
+const cacheDuration = 3600; // 1 heure en secondes
 router.use(verifyApiKey);
 
-// Route pour récupérer les jobs en fonction du searchstring
-router.get('/getlogement/:type/:city/:bed?/:price?/:pet?', logementController.getLogement);
-router.get('/getlogementwithtype/:type?/:city?/:ftype?',  logementController.geLogementwithtype);
-router.get('/getlogementdetails/*',  logementController.getLogementDetails);
-   
-module.exports = router;
-=======
-const express = require('express');
-const router = express.Router();
-const AppartogoScraper  = require('../controllers/logementController');
-const verifyApiKey = require('../config/verifyApiKey');
-const scraper = new AppartogoScraper();
-const cacheDuration = 3600; // 1 heure en secondes
-// router.use(verifyApiKey);
-
-// router.use(verifyApiKey);
-
-// Route pour récupérer les propriétés avec filtres type, location et limit
-// router.get('/properties', async (req, res) => {
-//     try {
-//         // Récupération des paramètres de requête
-//         const { type = 'buy', location = '', limit = 10 } = req.query;
-//         // Appel du contrôleur principal
-//         await logementController.getProperties(req, res);
-//         // La réponse est gérée dans le contrôleur
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// });
-// router.get('/getlogement/cities', logementController.getCities);
-// router.get('/getlogement/listings/:city', logementController.getCityListings);
-// Route pour récupérer les jobs en fonction du searchstring
-// router.get('/getlogement/:type/:city/:bed?/:price?/:pet?', logementController.getLogement);
-// router.get('/getlogementwithtype/:type?/:city?/:ftype?',  logementController.geLogementwithtype);
-// router.get('/getlogementdetails/*',  logementController.getLogementDetails);
   
 /**
  * @route GET /api/appartogo/provinces
@@ -49,7 +13,7 @@ const cacheDuration = 3600; // 1 heure en secondes
  */
 router.get('/provinces', async (req, res) => {
     try {
-        const provinces = await scraper.scrapeAllProvinces();
+        const provinces = await AppartogoScraper.scrapeAllProvinces();
         res.json({ success: true, data: provinces });
     } catch (error) {
         console.error('Error in /provinces route:', error);
@@ -69,7 +33,16 @@ router.get('/provinces', async (req, res) => {
 router.get('/city/:cityName', async (req, res) => {
     try {
         const cityName = req.params.cityName;
-        const listings = await scraper.getListingsByCity(cityName);
+        
+        // Add input validation
+        if (!cityName || cityName.trim().length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Le nom de la ville est requis'
+            });
+        }
+        
+        const listings = await AppartogoScraper.getListingsByCity(cityName.trim());
         
         if (!listings || listings.length === 0) {
             return res.status(404).json({ 
@@ -86,6 +59,15 @@ router.get('/city/:cityName', async (req, res) => {
         });
     } catch (error) {
         console.error(`Error in /city/${req.params.cityName} route:`, error);
+        
+        // Better error handling
+        if (error.message.includes('not found in database')) {
+            return res.status(404).json({
+                success: false,
+                message: `La ville ${req.params.cityName} n'existe pas dans notre base de données`
+            });
+        }
+        
         res.status(500).json({ 
             success: false, 
             message: 'Erreur lors du scraping des annonces',
@@ -102,7 +84,7 @@ router.get('/city/:cityName', async (req, res) => {
 router.get('/refresh/:cityName', async (req, res) => {
     try {
         const cityName = req.params.cityName;
-        const listings = await scraper.getListingsByCity(cityName);
+        const listings = await AppartogoScraper.getListingsByCity(cityName);
         
         res.json({ 
             success: true, 
@@ -122,4 +104,3 @@ router.get('/refresh/:cityName', async (req, res) => {
 });
 
 module.exports = router;
->>>>>>> remotes/origin/eduF
