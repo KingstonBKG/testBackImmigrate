@@ -7,5 +7,6 @@ router.use(verifyApiKey);
 
 // Route pour récupérer les jobs en fonction du searchstring
 router.get('/getactu',  actuController.getactu);
+router.get('/getacturadiocanada',  actuController.getacturadiocanada);
   
 module.exports = router;
