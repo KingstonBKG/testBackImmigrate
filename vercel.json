@@ -15,6 +15,10 @@
     {
       "path": "/api/resautage",
       "schedule": "0 0 */10 * *"
+    },
+    {
+      "path": "/api/getAidesJudiciaires",
+      "schedule": "0 0 */10 * *"
     }
   ]
 }
