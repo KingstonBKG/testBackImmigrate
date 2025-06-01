@@ -12,9 +12,11 @@ class AppartogoScraper {
         try {
             const response = await axios.get(this.baseUrl);
             const $ = cheerio.load(response.data);
-
+            
             const provinces = [];
-
+            const batch = db.batch();
+            const allCitiesRef = db.collection('allCities');
+            
             // Find all province sections
             $('.container > h3').each((i, element) => {
                 const provinceName = $(element).text().trim();
@@ -22,37 +24,39 @@ class AppartogoScraper {
                     name: provinceName,
                     cities: []
                 };
-
+                
                 // Get the next sibling which contains the cities list
                 const citiesList = $(element).next().find('ul.list-unstyled li');
-
+                
                 citiesList.each((j, cityElement) => {
                     const cityLink = $(cityElement).find('a');
                     const cityName = cityLink.text().trim();
                     const cityUrl = new URL(cityLink.attr('href'), this.baseUrl).href;
-
-                    province.cities.push({
+                    
+                    const cityData = {
                         name: cityName,
                         url: cityUrl,
+                        province: provinceName,
                         updatedAt: new Date()
-                    });
+                    };
+                    
+                    province.cities.push(cityData);
+                    
+                    // Ajouter la ville à la collection allCities
+                    const cityDocRef = allCitiesRef.doc(cityName.toLowerCase());
+                    batch.set(cityDocRef, cityData);
                 });
-
+                
                 provinces.push(province);
-            });
-
-            // Store in Firebase using batched writes
-            const batch = db.batch();
-
-            // Store each province and its cities
-            for (const province of provinces) {
+                
+                // Sauvegarder la province et ses villes
                 const provinceRef = db.collection('provinces').doc(province.name.toLowerCase());
                 batch.set(provinceRef, {
                     name: province.name,
                     updatedAt: new Date()
                 });
-
-                // Store cities in a subcollection
+                
+                // Store cities in province subcollection
                 province.cities.forEach(city => {
                     const cityRef = provinceRef.collection('cities').doc(city.name.toLowerCase());
                     batch.set(cityRef, {
@@ -61,11 +65,11 @@ class AppartogoScraper {
                         updatedAt: new Date()
                     });
                 });
-            }
-
-            // Commit the batch
+            });
+            
+            // Commit all changes
             await batch.commit();
-
+            
             return provinces;
         } catch (error) {
             console.error('Error scraping provinces:', error);
@@ -128,24 +132,22 @@ class AppartogoScraper {
 
     async getListingsByCity(cityName) {
         try {
-            // First get all provinces and cities
-            const provinces = await this.scrapeAllProvinces();
-
-            // Find the city
-            let targetCity = null;
-            for (const province of provinces) {
-                const city = province.cities.find(c => c.name.toLowerCase() === cityName.toLowerCase());
-                if (city) {
-                    targetCity = city;
-                    break;
+            // Rechercher directement dans la collection allCities
+            const cityDoc = await db.collection('allCities').doc(cityName.toLowerCase()).get();
+            
+            if (!cityDoc.exists) {
+                // Si la ville n'existe pas, on rafraîchit les données et on réessaie
+                await this.scrapeAllProvinces();
+                const refreshedCityDoc = await db.collection('allCities').doc(cityName.toLowerCase()).get();
+                
+                if (!refreshedCityDoc.exists) {
+                    throw new Error(`City ${cityName} not found`);
                 }
+                
+                return await this.scrapeListings(refreshedCityDoc.data().url);
             }
-
-            if (!targetCity) {
-                throw new Error(`City ${cityName} not found`);
-            }
-
-            return await this.scrapeListings(targetCity.url);
+            
+            return await this.scrapeListings(cityDoc.data().url);
         } catch (error) {
             console.error('Error getting listings by city:', error);
             throw error;
